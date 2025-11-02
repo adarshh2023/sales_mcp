@@ -80,7 +80,7 @@ app.get("/", (req, res) => {
       toolsList: "/tools/list",
     },
     availableTools: getToolNames().length,
-    documentation: "https://github.com/yourusername/erp-sales-api",
+    documentation: "https://github.com/adarshh2023/sales_mcp",
   });
 });
 

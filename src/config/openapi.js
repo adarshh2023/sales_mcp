@@ -8,7 +8,7 @@ export const openApiSchema = {
   },
   servers: [
     {
-      url: "https://your-render-url.onrender.com",
+      url: "https://sales-mcp-6q6h.onrender.com",
     },
   ],
   paths: {
