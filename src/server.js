@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
   res.json({
     name: "ERP Sales MCP Server",
     version: "1.0.0",
-    protocolVersion: "2024-11-05",
+    protocolVersion: "2025-06-18",
     capabilities: {
       tools: {},
       prompts: {},
