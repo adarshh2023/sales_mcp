@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: erp-sales-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DEFAULT_ERP_BASE_URL
+        value: https://gorealla.heptanesia.com
+      - key: DEFAULT_ERP_TOKEN
+        sync: false
+      - key: DEFAULT_USER_ID
+        sync: false
+      - key: REDIS_HOST
+        value: localhost
+      - key: REDIS_PORT
+        value: 6379
+      - key: CACHE_TTL
+        value: 300
+      - key: CACHE_ENABLED
+        value: true
+      - key: MAX_RETRIES
+        value: 3
+      - key: RETRY_DELAY
+        value: 1000
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: RATE_LIMIT_WINDOW
+        value: 15
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
