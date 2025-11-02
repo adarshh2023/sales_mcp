@@ -15,14 +15,21 @@ class RedisClient {
     }
 
     try {
-      this.client = createClient({
-        socket: {
-          host: process.env.REDIS_HOST || "localhost",
-          port: parseInt(process.env.REDIS_PORT) || 6379,
-        },
-        password: process.env.REDIS_PASSWORD || undefined,
-        database: parseInt(process.env.REDIS_DB) || 0,
-      });
+      // Use single connection URL if provided (Render internal or managed Redis)
+      if (process.env.REDIS_URL) {
+        this.client = createClient({
+          url: process.env.REDIS_URL,
+        });
+      } else {
+        this.client = createClient({
+          socket: {
+            host: process.env.REDIS_HOST || "localhost",
+            port: parseInt(process.env.REDIS_PORT) || 6379,
+          },
+          password: process.env.REDIS_PASSWORD || undefined,
+          database: parseInt(process.env.REDIS_DB) || 0,
+        });
+      }
 
       this.client.on("error", (err) => {
         console.error("Redis Client Error:", err);
@@ -37,7 +44,6 @@ class RedisClient {
       return this.client;
     } catch (error) {
       console.error("❌ Failed to connect to Redis:", error);
-      // Don't throw - allow server to run without Redis
       return null;
     }
   }
@@ -116,6 +122,5 @@ class RedisClient {
   }
 }
 
-// Export singleton instance
 const redisClient = new RedisClient();
 export default redisClient;
