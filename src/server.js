@@ -71,8 +71,8 @@ app.get("/", (req, res) => {
 });
 
 /**
- * MCP Protocol: POST / - Tool Listing and Execution
- * This is where OpenAI sends all MCP requests
+ * MCP Protocol: POST / - All MCP Methods
+ * This handles the complete MCP protocol including initialize
  */
 app.post("/", async (req, res) => {
   const { method, params } = req.body;
@@ -81,6 +81,26 @@ app.post("/", async (req, res) => {
   console.log(`📥 Params:`, JSON.stringify(params, null, 2));
 
   try {
+    // MCP Method: Initialize (handshake)
+    if (method === "initialize") {
+      console.log(
+        `✅ MCP Initialize: protocolVersion=${params.protocolVersion}`
+      );
+
+      return res.json({
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {},
+          prompts: {},
+          resources: {},
+        },
+        serverInfo: {
+          name: "ERP Sales MCP Server",
+          version: "1.0.0",
+        },
+      });
+    }
+
     // MCP Method: List all tools
     if (method === "tools/list") {
       const tools = getToolNames().map((name) => ({
@@ -123,6 +143,12 @@ app.post("/", async (req, res) => {
           },
         ],
       });
+    }
+
+    // MCP Method: Notifications (optional, usually no response needed)
+    if (method === "notifications/initialized") {
+      console.log(`✅ Client initialized notification received`);
+      return res.status(204).send(); // No content
     }
 
     // Unknown MCP method
