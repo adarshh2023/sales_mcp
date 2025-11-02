@@ -14,14 +14,26 @@ const PORT = process.env.PORT || 3000;
 
 // ========== MIDDLEWARE ==========
 
-// Security headers
-app.use(helmet());
+// Security headers - MODIFIED for OpenAI compatibility
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable CSP for API
+    crossOriginEmbedderPolicy: false, // Allow embedding
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin
+  })
+);
 
-// CORS
+// CORS - UPDATED to explicitly allow OpenAI
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like curl, Postman)
+      if (!origin) return callback(null, true);
+
+      // Allow all origins (you can restrict this later)
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -30,8 +42,14 @@ app.use(
       "userid",
       "x-api-key",
     ],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
+
+// Handle preflight requests explicitly
+app.options("*", cors());
 
 // Body parser
 app.use(express.json());
@@ -42,12 +60,16 @@ const limiter = rateLimit({
   windowMs: (parseInt(process.env.RATE_LIMIT_WINDOW) || 15) * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   message: "Too many requests from this IP, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use("/tools/", limiter);
 
 // Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`Origin: ${req.headers.origin || "none"}`);
+  console.log(`User-Agent: ${req.headers["user-agent"] || "none"}`);
   next();
 });
 
@@ -86,14 +108,25 @@ app.get("/", (req, res) => {
 
 /**
  * OpenAPI schema endpoint (for OpenAI)
+ * CRITICAL: This must return proper CORS headers
  */
 app.get("/openapi.json", (req, res) => {
-  // Update server URL dynamically
-  const serverUrl = `${req.protocol}://${req.get("host")}`;
+  // Update server URL dynamically based on request
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.headers["x-forwarded-host"] || req.get("host");
+  const serverUrl = `${protocol}://${host}`;
+
   const schema = {
     ...openApiSchema,
     servers: [{ url: serverUrl }],
   };
+
+  // Set explicit headers for OpenAI
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   res.json(schema);
 });
 
@@ -129,7 +162,7 @@ app.post("/tools/:toolName", async (req, res) => {
 
   console.log(`\n🔧 Tool Request: ${toolName}`);
   console.log(`📥 Params:`, JSON.stringify(params, null, 2));
-  console.log(`🔐 Headers:`, {
+  console.log(`🔑 Headers:`, {
     baseurl: headers.baseurl || "default",
     userid: headers.userid || "default",
     hasToken: !!headers.erptoken,
