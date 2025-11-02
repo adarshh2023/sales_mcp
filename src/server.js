@@ -48,30 +48,71 @@ app.use((req, res, next) => {
 // ========== MCP PROTOCOL ENDPOINTS ==========
 
 /**
- * GET / - Server capabilities (SSE endpoint discovery)
+ * GET / - SSE endpoint for MCP protocol
+ * This is the main discovery endpoint
  */
 app.get("/", (req, res) => {
-  console.log("📋 MCP: Server info requested");
+  console.log("📋 MCP: GET / - Checking Accept header");
+  const accept = req.headers["accept"] || "";
+  console.log(`Accept: ${accept}`);
 
-  const response = {
-    protocolVersion: "2024-11-05",
-    capabilities: {
-      tools: {},
-      resources: {},
-      prompts: {},
-    },
-    serverInfo: {
-      name: "ERP Sales MCP Server",
-      version: "1.0.0",
-    },
-  };
+  // If client accepts text/event-stream, this is SSE connection
+  if (accept.includes("text/event-stream")) {
+    console.log("✅ SSE connection requested - setting up stream");
 
-  console.log("Responding with:", JSON.stringify(response, null, 2));
-  res.json(response);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    // Send initial server info as SSE event
+    const serverInfo = {
+      jsonrpc: "2.0",
+      method: "server/info",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {},
+        },
+        serverInfo: {
+          name: "ERP Sales MCP Server",
+          version: "1.0.0",
+        },
+      },
+    };
+
+    res.write(`data: ${JSON.stringify(serverInfo)}\n\n`);
+
+    // Keep connection alive
+    const keepAlive = setInterval(() => {
+      res.write(": keepalive\n\n");
+    }, 30000);
+
+    req.on("close", () => {
+      clearInterval(keepAlive);
+      console.log("📋 SSE connection closed");
+    });
+  } else {
+    // Regular JSON response for non-SSE clients
+    console.log("📋 Regular HTTP request - returning JSON");
+
+    const response = {
+      protocolVersion: "2024-11-05",
+      capabilities: {
+        tools: {},
+      },
+      serverInfo: {
+        name: "ERP Sales MCP Server",
+        version: "1.0.0",
+      },
+    };
+
+    console.log("Responding with:", JSON.stringify(response, null, 2));
+    res.json(response);
+  }
 });
 
 /**
- * POST / - JSON-RPC style MCP endpoint
+ * POST / - JSON-RPC endpoint for MCP methods
  */
 app.post("/", async (req, res) => {
   const { jsonrpc, id, method, params } = req.body;
@@ -90,8 +131,6 @@ app.post("/", async (req, res) => {
           protocolVersion: "2024-11-05",
           capabilities: {
             tools: {},
-            resources: {},
-            prompts: {},
           },
           serverInfo: {
             name: "ERP Sales MCP Server",
@@ -136,7 +175,6 @@ app.post("/", async (req, res) => {
 
       case "notifications/initialized":
         console.log(`✅ Client initialized notification`);
-        // Notifications don't return results
         return res.status(204).send();
 
       default:
@@ -151,7 +189,6 @@ app.post("/", async (req, res) => {
         });
     }
 
-    // JSON-RPC 2.0 response format
     const response =
       jsonrpc === "2.0" ? { jsonrpc: "2.0", id: id || null, result } : result;
 
@@ -366,7 +403,7 @@ function getToolInputSchema(name) {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("\n✅ ERP Sales MCP Server Started");
   console.log(`🌐 Server URL: http://0.0.0.0:${PORT}`);
-  console.log(`📋 Protocol: MCP (Model Context Protocol) with JSON-RPC 2.0`);
+  console.log(`📋 Protocol: MCP with SSE support`);
   console.log(`🔧 Available Tools: ${getToolNames().length}`);
   console.log("\n📋 Tool List:");
 
