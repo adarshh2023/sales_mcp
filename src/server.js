@@ -11,7 +11,6 @@ const PORT = process.env.PORT || 3000;
 
 // ========== MIDDLEWARE ==========
 
-// Security headers - relaxed for MCP
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -20,7 +19,6 @@ app.use(
   })
 );
 
-// CORS - allow all origins
 app.use(
   cors({
     origin: "*",
@@ -38,143 +36,157 @@ app.use(
 
 app.use(express.json());
 
-// Logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   console.log(`User-Agent: ${req.headers["user-agent"] || "none"}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`Body:`, JSON.stringify(req.body, null, 2));
+  }
   next();
 });
 
 // ========== MCP PROTOCOL ENDPOINTS ==========
 
 /**
- * MCP Protocol: GET / - Server Information
- * OpenAI queries this first to get server capabilities
+ * GET / - Server capabilities (SSE endpoint discovery)
  */
 app.get("/", (req, res) => {
   console.log("📋 MCP: Server info requested");
 
-  res.json({
-    name: "ERP Sales MCP Server",
-    version: "1.0.0",
-    protocolVersion: "2025-06-18",
+  const response = {
+    protocolVersion: "2024-11-05",
     capabilities: {
       tools: {},
-      prompts: {},
       resources: {},
+      prompts: {},
     },
     serverInfo: {
-      name: "ERP Sales API",
+      name: "ERP Sales MCP Server",
       version: "1.0.0",
     },
-  });
+  };
+
+  console.log("Responding with:", JSON.stringify(response, null, 2));
+  res.json(response);
 });
 
 /**
- * MCP Protocol: POST / - All MCP Methods
- * This handles the complete MCP protocol including initialize
+ * POST / - JSON-RPC style MCP endpoint
  */
 app.post("/", async (req, res) => {
-  const { method, params } = req.body;
+  const { jsonrpc, id, method, params } = req.body;
 
   console.log(`🔧 MCP Request: ${method}`);
-  console.log(`📥 Params:`, JSON.stringify(params, null, 2));
 
   try {
-    // MCP Method: Initialize (handshake)
-    if (method === "initialize") {
-      console.log(
-        `✅ MCP Initialize: protocolVersion=${params.protocolVersion}`
-      );
+    let result;
 
-      return res.json({
-        protocolVersion: "2024-11-05",
-        capabilities: {
-          tools: {},
-          prompts: {},
-          resources: {},
-        },
-        serverInfo: {
-          name: "ERP Sales MCP Server",
-          version: "1.0.0",
-        },
-      });
-    }
-
-    // MCP Method: List all tools
-    if (method === "tools/list") {
-      const tools = getToolNames().map((name) => ({
-        name,
-        description: getToolDescription(name),
-        inputSchema: getToolInputSchema(name),
-      }));
-
-      console.log(`✅ Returning ${tools.length} tools`);
-
-      return res.json({
-        tools,
-      });
-    }
-
-    // MCP Method: Call a specific tool
-    if (method === "tools/call") {
-      const { name, arguments: args } = params;
-
-      console.log(`🔨 Calling tool: ${name}`);
-
-      // Extract custom headers
-      const headers = {
-        erptoken: req.headers.erptoken || req.headers["erptoken"],
-        baseurl: req.headers.baseurl || req.headers["baseurl"],
-        userid: req.headers.userid || req.headers["userid"],
-      };
-
-      // Execute the tool
-      const result = await executeTool(name, args, headers);
-
-      console.log(`✅ Tool executed: ${name}`);
-
-      // Return MCP-formatted response
-      return res.json({
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(result, null, 2),
+    switch (method) {
+      case "initialize":
+        console.log(
+          `✅ Initialize: protocolVersion=${params?.protocolVersion}`
+        );
+        result = {
+          protocolVersion: "2024-11-05",
+          capabilities: {
+            tools: {},
+            resources: {},
+            prompts: {},
           },
-        ],
-      });
+          serverInfo: {
+            name: "ERP Sales MCP Server",
+            version: "1.0.0",
+          },
+        };
+        break;
+
+      case "tools/list":
+        console.log(`✅ Listing tools`);
+        const tools = getToolNames().map((name) => ({
+          name,
+          description: getToolDescription(name),
+          inputSchema: getToolInputSchema(name),
+        }));
+        result = { tools };
+        console.log(`   Returning ${tools.length} tools`);
+        break;
+
+      case "tools/call":
+        const { name, arguments: args } = params;
+        console.log(`🔨 Calling tool: ${name}`);
+
+        const headers = {
+          erptoken: req.headers.erptoken || req.headers["erptoken"],
+          baseurl: req.headers.baseurl || req.headers["baseurl"],
+          userid: req.headers.userid || req.headers["userid"],
+        };
+
+        const toolResult = await executeTool(name, args, headers);
+        console.log(`✅ Tool executed successfully`);
+
+        result = {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(toolResult, null, 2),
+            },
+          ],
+        };
+        break;
+
+      case "notifications/initialized":
+        console.log(`✅ Client initialized notification`);
+        // Notifications don't return results
+        return res.status(204).send();
+
+      default:
+        console.log(`❌ Unknown method: ${method}`);
+        return res.status(400).json({
+          jsonrpc: "2.0",
+          id: id || null,
+          error: {
+            code: -32601,
+            message: `Method not found: ${method}`,
+          },
+        });
     }
 
-    // MCP Method: Notifications (optional, usually no response needed)
-    if (method === "notifications/initialized") {
-      console.log(`✅ Client initialized notification received`);
-      return res.status(204).send(); // No content
-    }
+    // JSON-RPC 2.0 response format
+    const response =
+      jsonrpc === "2.0" ? { jsonrpc: "2.0", id: id || null, result } : result;
 
-    // Unknown MCP method
-    console.log(`❌ Unknown method: ${method}`);
-    return res.status(400).json({
-      error: {
-        code: "method_not_found",
-        message: `Unknown MCP method: ${method}`,
-      },
-    });
+    console.log(
+      "Response:",
+      JSON.stringify(response).substring(0, 200) + "..."
+    );
+    res.json(response);
   } catch (error) {
     console.error(`❌ Error:`, error.message);
-    return res.status(500).json({
-      error: {
-        code: "internal_error",
-        message: error.message,
-      },
-    });
+    console.error(error.stack);
+
+    const errorResponse =
+      jsonrpc === "2.0"
+        ? {
+            jsonrpc: "2.0",
+            id: id || null,
+            error: {
+              code: -32603,
+              message: error.message,
+            },
+          }
+        : {
+            error: {
+              code: "internal_error",
+              message: error.message,
+            },
+          };
+
+    res.status(500).json(errorResponse);
   }
 });
 
 // ========== HELPER ENDPOINTS ==========
 
-/**
- * Health check (optional, for monitoring)
- */
 app.get("/health", (req, res) => {
   res.json({
     status: "healthy",
@@ -184,9 +196,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-/**
- * Error handler
- */
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
@@ -357,7 +366,7 @@ function getToolInputSchema(name) {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("\n✅ ERP Sales MCP Server Started");
   console.log(`🌐 Server URL: http://0.0.0.0:${PORT}`);
-  console.log(`📋 Protocol: MCP (Model Context Protocol)`);
+  console.log(`📋 Protocol: MCP (Model Context Protocol) with JSON-RPC 2.0`);
   console.log(`🔧 Available Tools: ${getToolNames().length}`);
   console.log("\n📋 Tool List:");
 
@@ -369,7 +378,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log("\n⏳ Ready for MCP requests...\n");
 });
 
-// Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("\n🛑 SIGTERM received, shutting down gracefully...");
   process.exit(0);
