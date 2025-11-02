@@ -19,28 +19,27 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "erptoken",
-      "baseurl",
-      "userid",
-    ],
-    credentials: true,
-  })
-);
-
-app.use(express.json());
-
+// CORS - critical for OpenAI
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  console.log(`User-Agent: ${req.headers["user-agent"] || "none"}`);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type,Authorization,erptoken,baseurl,userid"
+  );
+  res.setHeader("Access-Control-Max-Age", "600");
+  res.setHeader("Cache-Control", "no-store");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
+app.use(express.json({ limit: "1mb" }));
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log(`Body:`, JSON.stringify(req.body, null, 2));
+    console.log("Body:", JSON.stringify(req.body, null, 2));
   }
   next();
 });
@@ -48,179 +47,225 @@ app.use((req, res, next) => {
 // ========== MCP PROTOCOL ENDPOINTS ==========
 
 /**
- * GET / - SSE endpoint for MCP protocol
- * This is the main discovery endpoint
+ * GET / - Health check / info
  */
 app.get("/", (req, res) => {
-  console.log("📋 MCP: GET / - Checking Accept header");
-  const accept = req.headers["accept"] || "";
-  console.log(`Accept: ${accept}`);
-
-  // If client accepts text/event-stream, this is SSE connection
-  if (accept.includes("text/event-stream")) {
-    console.log("✅ SSE connection requested - setting up stream");
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    // Send initial server info as SSE event
-    const serverInfo = {
-      jsonrpc: "2.0",
-      method: "server/info",
-      params: {
-        protocolVersion: "2024-11-05",
-        capabilities: {
-          tools: {},
-        },
-        serverInfo: {
-          name: "ERP Sales MCP Server",
-          version: "1.0.0",
-        },
-      },
-    };
-
-    res.write(`data: ${JSON.stringify(serverInfo)}\n\n`);
-
-    // Keep connection alive
-    const keepAlive = setInterval(() => {
-      res.write(": keepalive\n\n");
-    }, 30000);
-
-    req.on("close", () => {
-      clearInterval(keepAlive);
-      console.log("📋 SSE connection closed");
-    });
-  } else {
-    // Regular JSON response for non-SSE clients
-    console.log("📋 Regular HTTP request - returning JSON");
-
-    const response = {
-      protocolVersion: "2024-11-05",
-      capabilities: {
-        tools: {},
-      },
-      serverInfo: {
-        name: "ERP Sales MCP Server",
-        version: "1.0.0",
-      },
-    };
-
-    console.log("Responding with:", JSON.stringify(response, null, 2));
-    res.json(response);
-  }
+  console.log("📋 GET / - Health check");
+  res.json({
+    ok: true,
+    service: "erp-sales-mcp-server",
+    mcp: {
+      version: "1.0.0",
+      name: "ERP Sales MCP Server",
+      description:
+        "MCP server for ERP Sales Agent System with lead management, events, and messaging",
+    },
+  });
 });
 
 /**
- * POST / - JSON-RPC endpoint for MCP methods
+ * POST / - Main MCP JSON-RPC endpoint
  */
 app.post("/", async (req, res) => {
-  const { jsonrpc, id, method, params } = req.body;
+  const { id, method, params, jsonrpc } = req.body || {};
 
   console.log(`🔧 MCP Request: ${method}`);
 
   try {
-    let result;
+    // Handle initialize - ECHO BACK CLIENT'S PROTOCOL VERSION
+    if (method === "initialize") {
+      const clientInfo = params?.clientInfo || {};
+      const protocolVersion = params?.protocolVersion || "2024-11-05";
 
-    switch (method) {
-      case "initialize":
-        console.log(
-          `✅ Initialize: protocolVersion=${params?.protocolVersion}`
-        );
-        result = {
-          protocolVersion: "2024-11-05",
+      console.log(
+        `✅ Initialize from: ${clientInfo.name}, protocol: ${protocolVersion}`
+      );
+
+      return res.json({
+        jsonrpc: "2.0",
+        id,
+        result: {
+          protocolVersion: protocolVersion, // Echo back client's version!
           capabilities: {
-            tools: {},
+            tools: {}, // Empty object, not null
+            resources: {},
+            prompts: {},
           },
           serverInfo: {
-            name: "ERP Sales MCP Server",
+            name: "erp-sales-mcp-server",
             version: "1.0.0",
           },
-        };
-        break;
+        },
+      });
+    }
 
-      case "tools/list":
-        console.log(`✅ Listing tools`);
-        const tools = getToolNames().map((name) => ({
-          name,
-          description: getToolDescription(name),
-          inputSchema: getToolInputSchema(name),
-        }));
-        result = { tools };
-        console.log(`   Returning ${tools.length} tools`);
-        break;
+    // Handle tools/list
+    if (method === "tools/list") {
+      console.log(`✅ Listing tools`);
 
-      case "tools/call":
-        const { name, arguments: args } = params;
-        console.log(`🔨 Calling tool: ${name}`);
+      const tools = getToolNames().map((name) => ({
+        name,
+        description: getToolDescription(name),
+        inputSchema: getToolInputSchema(name),
+      }));
 
-        const headers = {
-          erptoken: req.headers.erptoken || req.headers["erptoken"],
-          baseurl: req.headers.baseurl || req.headers["baseurl"],
-          userid: req.headers.userid || req.headers["userid"],
-        };
+      console.log(`   Returning ${tools.length} tools`);
 
-        const toolResult = await executeTool(name, args, headers);
-        console.log(`✅ Tool executed successfully`);
+      return res.json({
+        jsonrpc: "2.0",
+        id,
+        result: {
+          tools: tools,
+        },
+      });
+    }
 
-        result = {
+    // Handle tools/call
+    if (method === "tools/call") {
+      const { name, arguments: args = {} } = params || {};
+      console.log(`🔨 Calling tool: ${name}`);
+      console.log(`   Args:`, JSON.stringify(args, null, 2));
+
+      // Extract custom headers
+      const headers = {
+        erptoken: req.headers.erptoken || req.headers["erptoken"],
+        baseurl: req.headers.baseurl || req.headers["baseurl"],
+        userid: req.headers.userid || req.headers["userid"],
+      };
+
+      // Execute the tool
+      const result = await executeTool(name, args, headers);
+      console.log(`✅ Tool executed successfully`);
+
+      // Return in OpenAI's expected format
+      return res.json({
+        jsonrpc: "2.0",
+        id,
+        result: {
           content: [
             {
               type: "text",
-              text: JSON.stringify(toolResult, null, 2),
+              text:
+                typeof result === "string"
+                  ? result
+                  : JSON.stringify(result, null, 2),
             },
           ],
-        };
-        break;
-
-      case "notifications/initialized":
-        console.log(`✅ Client initialized notification`);
-        return res.status(204).send();
-
-      default:
-        console.log(`❌ Unknown method: ${method}`);
-        return res.status(400).json({
-          jsonrpc: "2.0",
-          id: id || null,
-          error: {
-            code: -32601,
-            message: `Method not found: ${method}`,
-          },
-        });
+        },
+      });
     }
 
-    const response =
-      jsonrpc === "2.0" ? { jsonrpc: "2.0", id: id || null, result } : result;
-
-    console.log(
-      "Response:",
-      JSON.stringify(response).substring(0, 200) + "..."
-    );
-    res.json(response);
-  } catch (error) {
-    console.error(`❌ Error:`, error.message);
-    console.error(error.stack);
-
-    const errorResponse =
-      jsonrpc === "2.0"
-        ? {
-            jsonrpc: "2.0",
-            id: id || null,
-            error: {
-              code: -32603,
-              message: error.message,
-            },
-          }
-        : {
-            error: {
-              code: "internal_error",
-              message: error.message,
-            },
-          };
-
-    res.status(500).json(errorResponse);
+    // Unknown method
+    console.log(`❌ Unknown method: ${method}`);
+    return res.json({
+      jsonrpc: "2.0",
+      id,
+      error: {
+        code: -32601,
+        message: `Method not found: ${method}`,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error handling request:", err);
+    return res.json({
+      jsonrpc: "2.0",
+      id,
+      error: {
+        code: -32603,
+        message: "Internal error",
+        data: err?.message || err,
+      },
+    });
   }
 });
+
+// ========== EXPLICIT ENDPOINTS (backup) ==========
+
+app.post("/initialize", (req, res) => {
+  const { id, params } = req.body || {};
+  const protocolVersion = params?.protocolVersion || "2024-11-05";
+
+  res.json({
+    jsonrpc: "2.0",
+    id,
+    result: {
+      protocolVersion: protocolVersion,
+      capabilities: {
+        tools: {},
+        resources: {},
+        prompts: {},
+      },
+      serverInfo: {
+        name: "erp-sales-mcp-server",
+        version: "1.0.0",
+      },
+    },
+  });
+});
+
+app.post("/tools/list", (req, res) => {
+  const id = req.body?.id ?? null;
+  const tools = getToolNames().map((name) => ({
+    name,
+    description: getToolDescription(name),
+    inputSchema: getToolInputSchema(name),
+  }));
+
+  res.json({
+    jsonrpc: "2.0",
+    id,
+    result: {
+      tools: tools,
+    },
+  });
+});
+
+app.post("/tools/call", async (req, res) => {
+  const id = req.body?.id ?? null;
+  const { name, arguments: args = {} } = req.body?.params || {};
+
+  try {
+    const headers = {
+      erptoken: req.headers.erptoken,
+      baseurl: req.headers.baseurl,
+      userid: req.headers.userid,
+    };
+
+    const result = await executeTool(name, args, headers);
+
+    res.json({
+      jsonrpc: "2.0",
+      id,
+      result: {
+        content: [
+          {
+            type: "text",
+            text:
+              typeof result === "string"
+                ? result
+                : JSON.stringify(result, null, 2),
+          },
+        ],
+      },
+    });
+  } catch (err) {
+    console.error("Tool call error:", err);
+    res.json({
+      jsonrpc: "2.0",
+      id,
+      error: {
+        code: -32603,
+        message: "Tool execution failed",
+        data: err?.message || err,
+      },
+    });
+  }
+});
+
+// OPTIONS handlers
+app.options("/initialize", (_req, res) => res.sendStatus(204));
+app.options("/tools/list", (_req, res) => res.sendStatus(204));
+app.options("/tools/call", (_req, res) => res.sendStatus(204));
 
 // ========== HELPER ENDPOINTS ==========
 
@@ -233,14 +278,13 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({
-    error: {
-      code: "internal_error",
-      message: err.message,
-    },
-  });
+app.get("/tools", (req, res) => {
+  const tools = getToolNames().map((name) => ({
+    name,
+    description: getToolDescription(name),
+    inputSchema: getToolInputSchema(name),
+  }));
+  res.json({ tools });
 });
 
 // ========== TOOL METADATA ==========
@@ -274,6 +318,7 @@ function getToolInputSchema(name) {
           description: "Mobile number (e.g., +919876543210)",
         },
       },
+      additionalProperties: false,
     },
     create_lead: {
       type: "object",
@@ -290,6 +335,7 @@ function getToolInputSchema(name) {
         state: { type: "string", description: "State" },
         country: { type: "string", description: "Country" },
       },
+      additionalProperties: true,
     },
     get_events: {
       type: "object",
@@ -297,6 +343,7 @@ function getToolInputSchema(name) {
         page: { type: "integer", description: "Page number (default: 0)" },
         size: { type: "integer", description: "Page size (default: 20)" },
       },
+      additionalProperties: false,
     },
     create_event: {
       type: "object",
@@ -309,6 +356,7 @@ function getToolInputSchema(name) {
         location: { type: "string", description: "Event location" },
         eventStatus: { type: "string", description: "Event status" },
       },
+      additionalProperties: true,
     },
     add_team_to_event: {
       type: "object",
@@ -338,6 +386,7 @@ function getToolInputSchema(name) {
         },
         isActive: { type: "boolean", description: "Is active" },
       },
+      additionalProperties: true,
     },
     create_event_lead: {
       type: "object",
@@ -357,6 +406,7 @@ function getToolInputSchema(name) {
           description: "Priority",
         },
       },
+      additionalProperties: true,
     },
     save_simple_message: {
       type: "object",
@@ -365,6 +415,7 @@ function getToolInputSchema(name) {
         eventLeadId: { type: "string", description: "EventLead ID" },
         message: { type: "string", description: "Message content" },
       },
+      additionalProperties: false,
     },
     generate_summary: {
       type: "object",
@@ -372,6 +423,7 @@ function getToolInputSchema(name) {
       properties: {
         eventLeadId: { type: "string", description: "EventLead ID" },
       },
+      additionalProperties: false,
     },
     save_summary: {
       type: "object",
@@ -380,6 +432,7 @@ function getToolInputSchema(name) {
         eventLeadId: { type: "string", description: "EventLead ID" },
         summary: { type: "string", description: "AI-generated summary text" },
       },
+      additionalProperties: false,
     },
     get_conversation_history: {
       type: "object",
@@ -387,6 +440,7 @@ function getToolInputSchema(name) {
       properties: {
         eventLeadId: { type: "string", description: "EventLead ID" },
       },
+      additionalProperties: false,
     },
   };
 
@@ -394,6 +448,7 @@ function getToolInputSchema(name) {
     schemas[name] || {
       type: "object",
       properties: {},
+      additionalProperties: false,
     }
   );
 }
@@ -401,18 +456,11 @@ function getToolInputSchema(name) {
 // ========== SERVER STARTUP ==========
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("\n✅ ERP Sales MCP Server Started");
+  console.log(`\n✅ ERP Sales MCP Server Started`);
   console.log(`🌐 Server URL: http://0.0.0.0:${PORT}`);
-  console.log(`📋 Protocol: MCP with SSE support`);
+  console.log(`📋 Protocol: MCP (OpenAI Agent Builder Compatible)`);
   console.log(`🔧 Available Tools: ${getToolNames().length}`);
-  console.log("\n📋 Tool List:");
-
-  const tools = getToolNames();
-  console.log(`  🔵 Agent 1: ${tools.slice(0, 6).join(", ")}`);
-  console.log(`  🟢 Agent 2: ${tools.slice(6, 7).join(", ")}`);
-  console.log(`  🟡 Agent 3: ${tools.slice(7, 10).join(", ")}`);
-
-  console.log("\n⏳ Ready for MCP requests...\n");
+  console.log(`\nReady for OpenAI MCP connections\n`);
 });
 
 process.on("SIGTERM", () => {
