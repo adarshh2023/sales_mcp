@@ -50,7 +50,7 @@ app.use((req, res, next) => {
  * GET / - Health check / info
  */
 app.get("/", (req, res) => {
-  console.log("📋 GET / - Health check");
+  console.log("ðŸ“‹ GET / - Health check");
   res.json({
     ok: true,
     service: "erp-sales-mcp-server",
@@ -69,7 +69,7 @@ app.get("/", (req, res) => {
 app.post("/", async (req, res) => {
   const { id, method, params, jsonrpc } = req.body || {};
 
-  console.log(`🔧 MCP Request: ${method}`);
+  console.log(`ðŸ”§ MCP Request: ${method}`);
 
   try {
     // Handle initialize - ECHO BACK CLIENT'S PROTOCOL VERSION
@@ -78,7 +78,7 @@ app.post("/", async (req, res) => {
       const protocolVersion = params?.protocolVersion || "2024-11-05";
 
       console.log(
-        `✅ Initialize from: ${clientInfo.name}, protocol: ${protocolVersion}`
+        `âœ… Initialize from: ${clientInfo.name}, protocol: ${protocolVersion}`
       );
 
       return res.json({
@@ -101,7 +101,7 @@ app.post("/", async (req, res) => {
 
     // Handle tools/list
     if (method === "tools/list") {
-      console.log(`✅ Listing tools`);
+      console.log(`âœ… Listing tools`);
 
       const tools = getToolNames().map((name) => ({
         name,
@@ -123,7 +123,7 @@ app.post("/", async (req, res) => {
     // Handle tools/call
     if (method === "tools/call") {
       const { name, arguments: args = {} } = params || {};
-      console.log(`🔨 Calling tool: ${name}`);
+      console.log(`ðŸ”¨ Calling tool: ${name}`);
       console.log(`   Args:`, JSON.stringify(args, null, 2));
 
       // Extract custom headers
@@ -135,7 +135,7 @@ app.post("/", async (req, res) => {
 
       // Execute the tool
       const result = await executeTool(name, args, headers);
-      console.log(`✅ Tool executed successfully`);
+      console.log(`âœ… Tool executed successfully`);
 
       // Return in OpenAI's expected format
       return res.json({
@@ -156,7 +156,7 @@ app.post("/", async (req, res) => {
     }
 
     // Unknown method
-    console.log(`❌ Unknown method: ${method}`);
+    console.log(`âŒ Unknown method: ${method}`);
     return res.json({
       jsonrpc: "2.0",
       id,
@@ -166,7 +166,7 @@ app.post("/", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ Error handling request:", err);
+    console.error("âŒ Error handling request:", err);
     return res.json({
       jsonrpc: "2.0",
       id,
@@ -299,6 +299,7 @@ function getToolDescription(name) {
     create_event_lead: "Create an EventLead (link a lead to an event)",
     save_simple_message:
       "Save a message from a lead without generating AI response",
+    save_batch_messages: "Save multiple messages in batch for a conversation",
     generate_summary: "Generate summary data for a conversation (incremental)",
     save_summary: "Save an AI-generated summary for a conversation",
     get_conversation_history:
@@ -417,6 +418,38 @@ function getToolInputSchema(name) {
       },
       additionalProperties: false,
     },
+    save_batch_messages: {
+      type: "object",
+      required: ["eventLeadId", "messages"],
+      properties: {
+        eventLeadId: { type: "string", description: "EventLead ID" },
+        messages: {
+          type: "array",
+          description: "Array of messages to save",
+          items: {
+            type: "object",
+            required: ["senderType", "messageContent", "messageTimestamp"],
+            properties: {
+              senderType: {
+                type: "string",
+                enum: ["User", "AI"],
+                description: "Type of sender (User or AI)",
+              },
+              messageContent: {
+                type: "string",
+                description: "Content of the message",
+              },
+              messageTimestamp: {
+                type: "string",
+                description:
+                  "ISO 8601 timestamp (e.g., 2025-11-03T14:30:00.000Z)",
+              },
+            },
+          },
+        },
+      },
+      additionalProperties: false,
+    },
     generate_summary: {
       type: "object",
       required: ["eventLeadId"],
@@ -456,19 +489,19 @@ function getToolInputSchema(name) {
 // ========== SERVER STARTUP ==========
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\n✅ ERP Sales MCP Server Started`);
-  console.log(`🌐 Server URL: http://0.0.0.0:${PORT}`);
-  console.log(`📋 Protocol: MCP (OpenAI Agent Builder Compatible)`);
-  console.log(`🔧 Available Tools: ${getToolNames().length}`);
+  console.log(`\nâœ… ERP Sales MCP Server Started`);
+  console.log(`ðŸŒ Server URL: http://0.0.0.0:${PORT}`);
+  console.log(`ðŸ“‹ Protocol: MCP (OpenAI Agent Builder Compatible)`);
+  console.log(`ðŸ”§ Available Tools: ${getToolNames().length}`);
   console.log(`\nReady for OpenAI MCP connections\n`);
 });
 
 process.on("SIGTERM", () => {
-  console.log("\n🛑 SIGTERM received, shutting down gracefully...");
+  console.log("\nðŸ›‘ SIGTERM received, shutting down gracefully...");
   process.exit(0);
 });
 
 process.on("SIGINT", () => {
-  console.log("\n🛑 SIGINT received, shutting down gracefully...");
+  console.log("\nðŸ›‘ SIGINT received, shutting down gracefully...");
   process.exit(0);
 });

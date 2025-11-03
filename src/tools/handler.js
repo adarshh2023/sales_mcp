@@ -170,6 +170,32 @@ export const toolsHandler = {
     };
   },
 
+  /**
+   * Tool 7b: Save batch messages
+   */
+  save_batch_messages: async (params, headers) => {
+    const { eventLeadId, messages } = params;
+
+    const result = await apiClient.post(
+      "/api/v1/sales/lead-messages/batch",
+      { eventLeadId, messages },
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      eventLeadId: result.data.data.eventLeadId,
+      interactionId: result.data.data.interactionId,
+      savedCount: result.data.data.savedCount,
+      messageIds: result.data.data.messageIds,
+      message: result.data.data.message || "Batch messages saved successfully",
+    };
+  },
+
   // ========== AGENT 3: SUMMARY GENERATION ==========
 
   /**

@@ -274,6 +274,63 @@ export const openApiSchema = {
         },
       },
     },
+    "/tools/save_batch_messages": {
+      post: {
+        summary: "Save multiple messages in batch",
+        operationId: "saveBatchMessages",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["eventLeadId", "messages"],
+                properties: {
+                  eventLeadId: {
+                    type: "string",
+                    description: "EventLead ID",
+                  },
+                  messages: {
+                    type: "array",
+                    description: "Array of messages to save",
+                    items: {
+                      type: "object",
+                      required: [
+                        "senderType",
+                        "messageContent",
+                        "messageTimestamp",
+                      ],
+                      properties: {
+                        senderType: {
+                          type: "string",
+                          enum: ["User", "AI"],
+                          description: "Type of sender (User or AI)",
+                        },
+                        messageContent: {
+                          type: "string",
+                          description: "Content of the message",
+                        },
+                        messageTimestamp: {
+                          type: "string",
+                          format: "date-time",
+                          description:
+                            "ISO 8601 timestamp (e.g., 2025-11-03T14:30:00.000Z)",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Batch messages saved successfully",
+          },
+        },
+      },
+    },
     "/tools/generate_summary": {
       post: {
         summary: "Generate summary data (incremental)",
