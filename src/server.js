@@ -7,7 +7,7 @@ import { executeTool, getToolNames } from "./tools/handler.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // ========== MIDDLEWARE ==========
 
@@ -299,11 +299,16 @@ function getToolDescription(name) {
     create_event_lead: "Create an EventLead (link a lead to an event)",
     save_simple_message:
       "Save a message from a lead without generating AI response",
-    save_batch_messages: "Save multiple messages in batch for a conversation",
     generate_summary: "Generate summary data for a conversation (incremental)",
     save_summary: "Save an AI-generated summary for a conversation",
     get_conversation_history:
       "Get complete conversation history for an EventLead",
+    generateIndentNumber: "Generate a unique indent number",
+    fetchProjects: "Fetch list of all projects",
+    listLocations: "List all available locations",
+    listItems: "List all items from item master",
+    listUnits: "List all units of measurement",
+    createIndent: "Create a new indent with items",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -418,38 +423,6 @@ function getToolInputSchema(name) {
       },
       additionalProperties: false,
     },
-    save_batch_messages: {
-      type: "object",
-      required: ["eventLeadId", "messages"],
-      properties: {
-        eventLeadId: { type: "string", description: "EventLead ID" },
-        messages: {
-          type: "array",
-          description: "Array of messages to save",
-          items: {
-            type: "object",
-            required: ["senderType", "messageContent", "messageTimestamp"],
-            properties: {
-              senderType: {
-                type: "string",
-                enum: ["User", "AI"],
-                description: "Type of sender (User or AI)",
-              },
-              messageContent: {
-                type: "string",
-                description: "Content of the message",
-              },
-              messageTimestamp: {
-                type: "string",
-                description:
-                  "ISO 8601 timestamp (e.g., 2025-11-03T14:30:00.000Z)",
-              },
-            },
-          },
-        },
-      },
-      additionalProperties: false,
-    },
     generate_summary: {
       type: "object",
       required: ["eventLeadId"],
@@ -474,6 +447,120 @@ function getToolInputSchema(name) {
         eventLeadId: { type: "string", description: "EventLead ID" },
       },
       additionalProperties: false,
+    },
+    generateIndentNumber: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    fetchProjects: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    listLocations: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    listItems: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    listUnits: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    createIndent: {
+      type: "object",
+      required: [
+        "indentNumber",
+        "projectNodeId",
+        "locationId",
+        "requestedById",
+        "requestedDate",
+        "requiredByDate",
+        "indentItems",
+      ],
+      properties: {
+        indentNumber: { type: "string", description: "Indent number" },
+        indentTitle: { type: "string", description: "Indent title" },
+        indentDescription: {
+          type: "string",
+          description: "Indent description",
+        },
+        indentType: { type: "string", description: "Type of indent" },
+        priority: { type: "string", description: "Priority level" },
+        projectNodeId: { type: "string", description: "Project node ID" },
+        locationId: { type: "string", description: "Location ID" },
+        requestedById: { type: "string", description: "Requester user ID" },
+        requestorDepartment: { type: "string", description: "Department" },
+        requestedDate: {
+          type: "string",
+          description: "Requested date (YYYY-MM-DD)",
+        },
+        requiredByDate: {
+          type: "string",
+          description: "Required by date (YYYY-MM-DD)",
+        },
+        purposeOfIndent: { type: "string", description: "Purpose" },
+        workDescription: { type: "string", description: "Work description" },
+        justification: { type: "string", description: "Justification" },
+        estimatedBudget: { type: "number", description: "Estimated budget" },
+        budgetCode: { type: "string", description: "Budget code" },
+        requiresApproval: { type: "boolean", description: "Requires approval" },
+        isUrgent: { type: "boolean", description: "Is urgent" },
+        deliveryInstructions: {
+          type: "string",
+          description: "Delivery instructions",
+        },
+        qualityRequirements: {
+          type: "string",
+          description: "Quality requirements",
+        },
+        indentNotes: { type: "string", description: "Notes" },
+        indentItems: {
+          type: "array",
+          description: "Array of indent items",
+          items: {
+            type: "object",
+            required: [
+              "itemMasterId",
+              "requiredQuantity",
+              "unit",
+              "requiredByDate",
+            ],
+            properties: {
+              itemMasterId: { type: "string", description: "Item master ID" },
+              requiredQuantity: {
+                type: "number",
+                description: "Required quantity",
+              },
+              unit: { type: "string", description: "Unit of measurement" },
+              estimatedRate: { type: "number", description: "Estimated rate" },
+              estimatedAmount: {
+                type: "number",
+                description: "Estimated amount",
+              },
+              requiredByDate: {
+                type: "string",
+                description: "Required by date (YYYY-MM-DD)",
+              },
+              isTestingRequired: {
+                type: "boolean",
+                description: "Testing required",
+              },
+              purposeOfItem: { type: "string", description: "Purpose of item" },
+              itemNotes: { type: "string", description: "Item notes" },
+            },
+          },
+        },
+        deviceId: { type: "string", description: "Device ID" },
+        ipAddress: { type: "string", description: "IP address" },
+      },
+      additionalProperties: true,
     },
   };
 

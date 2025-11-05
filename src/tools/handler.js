@@ -170,32 +170,6 @@ export const toolsHandler = {
     };
   },
 
-  /**
-   * Tool 7b: Save batch messages
-   */
-  save_batch_messages: async (params, headers) => {
-    const { eventLeadId, messages } = params;
-
-    const result = await apiClient.post(
-      "/api/v1/sales/lead-messages/batch",
-      { eventLeadId, messages },
-      headers
-    );
-
-    if (!result.success) {
-      throw new Error(result.message);
-    }
-
-    return {
-      success: true,
-      eventLeadId: result.data.data.eventLeadId,
-      interactionId: result.data.data.interactionId,
-      savedCount: result.data.data.savedCount,
-      messageIds: result.data.data.messageIds,
-      message: result.data.data.message || "Batch messages saved successfully",
-    };
-  },
-
   // ========== AGENT 3: SUMMARY GENERATION ==========
 
   /**
@@ -281,6 +255,117 @@ export const toolsHandler = {
       overallSummary: data.overallSummary,
       totalMessages: data.totalMessages,
       message: "Conversation history retrieved successfully",
+    };
+  },
+
+  // ========== AGENT 4: INDENT MANAGEMENT ==========
+
+  /**
+   * Tool 11: Generate indent number
+   */
+  generateIndentNumber: async (params, headers) => {
+    const result = await apiClient.get(
+      "/api/v1/indents/generate-number",
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      indentNumber: result.data.data,
+      message: "Indent number generated successfully",
+    };
+  },
+
+  /**
+   * Tool 12: Fetch projects
+   */
+  fetchProjects: async (params, headers) => {
+    const result = await apiClient.get("/api/v1/projects", headers);
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      projects: result.data.data.content,
+      totalProjects: result.data.data.totalElements,
+      message: "Projects retrieved successfully",
+    };
+  },
+
+  /**
+   * Tool 13: List locations
+   */
+  listLocations: async (params, headers) => {
+    const result = await apiClient.get("/api/v1/locations", headers);
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      locations: result.data.data.content,
+      totalLocations: result.data.data.totalElements,
+      message: "Locations retrieved successfully",
+    };
+  },
+
+  /**
+   * Tool 14: List items
+   */
+  listItems: async (params, headers) => {
+    const result = await apiClient.get("/api/v1/items", headers);
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      items: result.data.data.content,
+      totalItems: result.data.data.totalElements,
+      message: "Items retrieved successfully",
+    };
+  },
+
+  /**
+   * Tool 15: List units
+   */
+  listUnits: async (params, headers) => {
+    const result = await apiClient.get("/api/v1/units", headers);
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      units: result.data.data.content,
+      totalUnits: result.data.data.totalElements,
+      message: "Units retrieved successfully",
+    };
+  },
+
+  /**
+   * Tool 16: Create indent
+   */
+  createIndent: async (params, headers) => {
+    const result = await apiClient.post("/api/v1/indents", params, headers);
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      indent: result.data.data,
+      message: "Indent created successfully",
     };
   },
 };

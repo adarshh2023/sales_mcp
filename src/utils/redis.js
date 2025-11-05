@@ -36,14 +36,14 @@ class RedisClient {
       });
 
       this.client.on("connect", () => {
-        console.log("✅ Redis connected successfully");
+        console.log("âœ… Redis connected successfully");
       });
 
       await this.client.connect();
       this.isConnected = true;
       return this.client;
     } catch (error) {
-      console.error("❌ Failed to connect to Redis:", error);
+      console.error("âŒ Failed to connect to Redis:", error);
       return null;
     }
   }

@@ -3,7 +3,7 @@ export const openApiSchema = {
   info: {
     title: "ERP Sales API",
     description:
-      "REST API for ERP Sales Agent System with 3 agents: Lead Validation, Message Collection, and Summary Generation",
+      "REST API for ERP Sales Agent System with 4 agents: Lead Validation, Message Collection, Summary Generation, and Indent Management",
     version: "1.0.0",
   },
   servers: [
@@ -274,63 +274,6 @@ export const openApiSchema = {
         },
       },
     },
-    "/tools/save_batch_messages": {
-      post: {
-        summary: "Save multiple messages in batch",
-        operationId: "saveBatchMessages",
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                required: ["eventLeadId", "messages"],
-                properties: {
-                  eventLeadId: {
-                    type: "string",
-                    description: "EventLead ID",
-                  },
-                  messages: {
-                    type: "array",
-                    description: "Array of messages to save",
-                    items: {
-                      type: "object",
-                      required: [
-                        "senderType",
-                        "messageContent",
-                        "messageTimestamp",
-                      ],
-                      properties: {
-                        senderType: {
-                          type: "string",
-                          enum: ["User", "AI"],
-                          description: "Type of sender (User or AI)",
-                        },
-                        messageContent: {
-                          type: "string",
-                          description: "Content of the message",
-                        },
-                        messageTimestamp: {
-                          type: "string",
-                          format: "date-time",
-                          description:
-                            "ISO 8601 timestamp (e.g., 2025-11-03T14:30:00.000Z)",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: "Batch messages saved successfully",
-          },
-        },
-      },
-    },
     "/tools/generate_summary": {
       post: {
         summary: "Generate summary data (incremental)",
@@ -406,6 +349,261 @@ export const openApiSchema = {
         responses: {
           200: {
             description: "Conversation history retrieved successfully",
+          },
+        },
+      },
+    },
+    "/tools/generateIndentNumber": {
+      post: {
+        summary: "Generate indent number",
+        operationId: "generateIndentNumber",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {},
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Indent number generated successfully",
+          },
+        },
+      },
+    },
+    "/tools/fetchProjects": {
+      post: {
+        summary: "Fetch projects list",
+        operationId: "fetchProjects",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {},
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Projects retrieved successfully",
+          },
+        },
+      },
+    },
+    "/tools/listLocations": {
+      post: {
+        summary: "List all locations",
+        operationId: "listLocations",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {},
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Locations retrieved successfully",
+          },
+        },
+      },
+    },
+    "/tools/listItems": {
+      post: {
+        summary: "List all items",
+        operationId: "listItems",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {},
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Items retrieved successfully",
+          },
+        },
+      },
+    },
+    "/tools/listUnits": {
+      post: {
+        summary: "List all units",
+        operationId: "listUnits",
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {},
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Units retrieved successfully",
+          },
+        },
+      },
+    },
+    "/tools/createIndent": {
+      post: {
+        summary: "Create new indent",
+        operationId: "createIndent",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: [
+                  "indentNumber",
+                  "projectNodeId",
+                  "locationId",
+                  "requestedById",
+                  "requestedDate",
+                  "requiredByDate",
+                  "indentItems",
+                ],
+                properties: {
+                  indentNumber: {
+                    type: "string",
+                    description: "Indent number",
+                  },
+                  indentTitle: { type: "string", description: "Indent title" },
+                  indentDescription: {
+                    type: "string",
+                    description: "Indent description",
+                  },
+                  indentType: { type: "string", description: "Type of indent" },
+                  priority: { type: "string", description: "Priority level" },
+                  projectNodeId: {
+                    type: "string",
+                    description: "Project node ID",
+                  },
+                  locationId: { type: "string", description: "Location ID" },
+                  requestedById: {
+                    type: "string",
+                    description: "Requester user ID",
+                  },
+                  requestorDepartment: {
+                    type: "string",
+                    description: "Department",
+                  },
+                  requestedDate: {
+                    type: "string",
+                    description: "Requested date (YYYY-MM-DD)",
+                  },
+                  requiredByDate: {
+                    type: "string",
+                    description: "Required by date (YYYY-MM-DD)",
+                  },
+                  purposeOfIndent: { type: "string", description: "Purpose" },
+                  workDescription: {
+                    type: "string",
+                    description: "Work description",
+                  },
+                  justification: {
+                    type: "string",
+                    description: "Justification",
+                  },
+                  estimatedBudget: {
+                    type: "number",
+                    description: "Estimated budget",
+                  },
+                  budgetCode: { type: "string", description: "Budget code" },
+                  requiresApproval: {
+                    type: "boolean",
+                    description: "Requires approval",
+                  },
+                  isUrgent: { type: "boolean", description: "Is urgent" },
+                  deliveryInstructions: {
+                    type: "string",
+                    description: "Delivery instructions",
+                  },
+                  qualityRequirements: {
+                    type: "string",
+                    description: "Quality requirements",
+                  },
+                  indentNotes: { type: "string", description: "Notes" },
+                  indentItems: {
+                    type: "array",
+                    description: "Array of indent items",
+                    items: {
+                      type: "object",
+                      required: [
+                        "itemMasterId",
+                        "requiredQuantity",
+                        "unit",
+                        "requiredByDate",
+                      ],
+                      properties: {
+                        itemMasterId: {
+                          type: "string",
+                          description: "Item master ID",
+                        },
+                        requiredQuantity: {
+                          type: "number",
+                          description: "Required quantity",
+                        },
+                        unit: {
+                          type: "string",
+                          description: "Unit of measurement",
+                        },
+                        estimatedRate: {
+                          type: "number",
+                          description: "Estimated rate",
+                        },
+                        estimatedAmount: {
+                          type: "number",
+                          description: "Estimated amount",
+                        },
+                        requiredByDate: {
+                          type: "string",
+                          description: "Required by date (YYYY-MM-DD)",
+                        },
+                        isTestingRequired: {
+                          type: "boolean",
+                          description: "Testing required",
+                        },
+                        purposeOfItem: {
+                          type: "string",
+                          description: "Purpose of item",
+                        },
+                        itemNotes: {
+                          type: "string",
+                          description: "Item notes",
+                        },
+                      },
+                    },
+                  },
+                  deviceId: { type: "string", description: "Device ID" },
+                  ipAddress: { type: "string", description: "IP address" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Indent created successfully",
           },
         },
       },

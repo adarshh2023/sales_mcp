@@ -36,7 +36,7 @@ class ApiClient {
       const cacheKey = this.getCacheKey(url, headers);
       const cached = await redisClient.get(cacheKey);
       if (cached) {
-        console.log(`✅ Cache hit: ${cacheKey}`);
+        console.log(`âœ… Cache hit: ${cacheKey}`);
         return {
           data: cached,
           cached: true,
@@ -67,18 +67,18 @@ class ApiClient {
 
       try {
         console.log(
-          `📡 API Request (attempt ${attempts}/${MAX_RETRIES}): ${method} ${url}`
+          `ðŸ“¡ API Request (attempt ${attempts}/${MAX_RETRIES}): ${method} ${url}`
         );
 
         const response = await axios(config);
 
-        console.log(`✅ API Success: ${method} ${url}`);
+        console.log(`âœ… API Success: ${method} ${url}`);
 
         // Cache successful GET responses
         if (CACHE_ENABLED && method === "GET" && response.data) {
           const cacheKey = this.getCacheKey(url, headers);
           await redisClient.set(cacheKey, response.data, CACHE_TTL);
-          console.log(`💾 Cached response: ${cacheKey}`);
+          console.log(`ðŸ’¾ Cached response: ${cacheKey}`);
         }
 
         return {
@@ -94,19 +94,19 @@ class ApiClient {
         const errorMessage = error.response?.data?.message || error.message;
 
         console.error(
-          `❌ API Error (attempt ${attempts}/${MAX_RETRIES}): ${errorMessage}`
+          `âŒ API Error (attempt ${attempts}/${MAX_RETRIES}): ${errorMessage}`
         );
 
         // Don't retry on 4xx errors
         if (status >= 400 && status < 500) {
-          console.log(`🚫 Not retrying - Client error (${status})`);
+          console.log(`ðŸš« Not retrying - Client error (${status})`);
           break;
         }
 
         // Retry on 5xx errors or network errors
         if (attempts < MAX_RETRIES) {
           const delay = RETRY_DELAY * Math.pow(2, attempts - 1);
-          console.log(`⏳ Retrying in ${delay}ms...`);
+          console.log(`â³ Retrying in ${delay}ms...`);
           await this.sleep(delay);
         }
       }
