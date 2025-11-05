@@ -1,4 +1,4 @@
-import apiClient from "../utils/apiClient.js";
+import apiClient from "./apiClient.js";
 
 /**
  * ALL TOOLS HANDLER
@@ -368,7 +368,197 @@ export const toolsHandler = {
       message: "Indent created successfully",
     };
   },
+
+  // ========== AGENT 5: MEDIA MANAGEMENT ==========
+
+  /**
+   * Tool 17: Search nodes by keyword
+   */
+  searchNodesArray: async (params, headers) => {
+    const {
+      keywords,
+      page = 0,
+      size = 50,
+      sort = "insertDate,ASC",
+      includePaths = true,
+      includeStakeholders = true,
+    } = params;
+
+    if (!keywords || String(keywords).trim().length === 0) {
+      throw new Error("'keywords' is required");
+    }
+
+    const queryParams = `keywords=${encodeURIComponent(
+      keywords
+    )}&page=${page}&size=${size}&sort=${encodeURIComponent(
+      sort
+    )}&includePaths=${includePaths}&includeStakeholders=${includeStakeholders}`;
+
+    const result = await apiClient.get(
+      `/api/v1/projects/nodes/search/searchNodesArray?${queryParams}`,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    const content = result.data.data?.content || [];
+    const options = content.map((n) => ({
+      nodeId: n.recCode,
+      nodeName: n.nodeName,
+      nodeTypeName: n.nodeTypeName,
+      treeLevel: n.treeLevel,
+      treePath: safeParseJSON(n.treePath),
+      status: n.status,
+      parentNodeId: n.parentNodeId || null,
+      rootNodeId: n.rootNodeId || null,
+    }));
+
+    return {
+      success: true,
+      total: result.data.data?.totalElements || options.length,
+      page: result.data.data?.pageable?.pageNumber || 0,
+      size: result.data.data?.pageable?.pageSize || options.length,
+      options,
+      message: "Nodes searched successfully",
+    };
+  },
+
+  /**
+   * Tool 18: Update node status only
+   */
+  updateNodeStatus: async (params, headers) => {
+    const { nodeId, status } = params;
+
+    if (!nodeId) {
+      throw new Error("'nodeId' is required");
+    }
+    if (!status) {
+      throw new Error("'status' is required");
+    }
+
+    const validStatuses = [
+      "Not Started",
+      "In Progress",
+      "Blocked",
+      "Completed",
+      "On Hold",
+    ];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Allowed: ${validStatuses.join(", ")}`);
+    }
+
+    const result = await apiClient.put(
+      `/api/v1/projects/nodes/${nodeId}/status`,
+      { status },
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      updated: true,
+      node: result.data.data,
+      message: "Node status updated successfully",
+    };
+  },
+
+  /**
+   * Tool 19: Update node (status, description, parentNodeId)
+   */
+  updateNode: async (params, headers) => {
+    const { nodeId, status, nodeDescription, parentNodeId } = params;
+
+    if (!nodeId) {
+      throw new Error("'nodeId' is required");
+    }
+
+    const validStatuses = [
+      "Not Started",
+      "In Progress",
+      "Blocked",
+      "Completed",
+      "On Hold",
+    ];
+    if (status && !validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Allowed: ${validStatuses.join(", ")}`);
+    }
+
+    const body = {};
+    if (typeof nodeDescription === "string")
+      body.nodeDescription = nodeDescription;
+    if (typeof status === "string") body.status = status;
+    if (typeof parentNodeId === "string") body.parentNodeId = parentNodeId;
+
+    const result = await apiClient.put(
+      `/api/v1/projects/nodes/${nodeId}`,
+      body,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      updated: true,
+      node: result.data.data,
+      message: "Node updated successfully",
+    };
+  },
+
+  /**
+   * Tool 20: Finalize after upload (helper)
+   */
+  finalizeAfterUpload: async (params, headers) => {
+    const { nodeId, update = {} } = params;
+
+    if (!nodeId) {
+      throw new Error("'nodeId' is required");
+    }
+
+    const { status, nodeDescription, parentNodeId } = update;
+
+    // If only status is provided → use status endpoint
+    if (status && !nodeDescription && parentNodeId === undefined) {
+      return await toolsHandler.updateNodeStatus({ nodeId, status }, headers);
+    }
+
+    // If any of (status, nodeDescription, parentNodeId) → combined PUT
+    if (
+      status ||
+      typeof nodeDescription === "string" ||
+      typeof parentNodeId === "string"
+    ) {
+      return await toolsHandler.updateNode(
+        { nodeId, status, nodeDescription, parentNodeId },
+        headers
+      );
+    }
+
+    return {
+      success: true,
+      message: "Nothing to update after upload.",
+    };
+  },
 };
+
+/**
+ * Helper: Safe JSON parse
+ */
+function safeParseJSON(str, fallback = []) {
+  try {
+    if (typeof str !== "string") return fallback;
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * Get tool names

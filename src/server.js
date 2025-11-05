@@ -50,7 +50,7 @@ app.use((req, res, next) => {
  * GET / - Health check / info
  */
 app.get("/", (req, res) => {
-  console.log("ðŸ“‹ GET / - Health check");
+  console.log("Ã°Å¸â€œâ€¹ GET / - Health check");
   res.json({
     ok: true,
     service: "erp-sales-mcp-server",
@@ -69,7 +69,7 @@ app.get("/", (req, res) => {
 app.post("/", async (req, res) => {
   const { id, method, params, jsonrpc } = req.body || {};
 
-  console.log(`ðŸ”§ MCP Request: ${method}`);
+  console.log(`Ã°Å¸â€Â§ MCP Request: ${method}`);
 
   try {
     // Handle initialize - ECHO BACK CLIENT'S PROTOCOL VERSION
@@ -78,7 +78,7 @@ app.post("/", async (req, res) => {
       const protocolVersion = params?.protocolVersion || "2024-11-05";
 
       console.log(
-        `âœ… Initialize from: ${clientInfo.name}, protocol: ${protocolVersion}`
+        `Ã¢Å“â€¦ Initialize from: ${clientInfo.name}, protocol: ${protocolVersion}`
       );
 
       return res.json({
@@ -101,7 +101,7 @@ app.post("/", async (req, res) => {
 
     // Handle tools/list
     if (method === "tools/list") {
-      console.log(`âœ… Listing tools`);
+      console.log(`Ã¢Å“â€¦ Listing tools`);
 
       const tools = getToolNames().map((name) => ({
         name,
@@ -123,7 +123,7 @@ app.post("/", async (req, res) => {
     // Handle tools/call
     if (method === "tools/call") {
       const { name, arguments: args = {} } = params || {};
-      console.log(`ðŸ”¨ Calling tool: ${name}`);
+      console.log(`Ã°Å¸â€Â¨ Calling tool: ${name}`);
       console.log(`   Args:`, JSON.stringify(args, null, 2));
 
       // Extract custom headers
@@ -135,7 +135,7 @@ app.post("/", async (req, res) => {
 
       // Execute the tool
       const result = await executeTool(name, args, headers);
-      console.log(`âœ… Tool executed successfully`);
+      console.log(`Ã¢Å“â€¦ Tool executed successfully`);
 
       // Return in OpenAI's expected format
       return res.json({
@@ -156,7 +156,7 @@ app.post("/", async (req, res) => {
     }
 
     // Unknown method
-    console.log(`âŒ Unknown method: ${method}`);
+    console.log(`Ã¢ÂÅ’ Unknown method: ${method}`);
     return res.json({
       jsonrpc: "2.0",
       id,
@@ -166,7 +166,7 @@ app.post("/", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("âŒ Error handling request:", err);
+    console.error("Ã¢ÂÅ’ Error handling request:", err);
     return res.json({
       jsonrpc: "2.0",
       id,
@@ -309,6 +309,11 @@ function getToolDescription(name) {
     listItems: "List all items from item master",
     listUnits: "List all units of measurement",
     createIndent: "Create a new indent with items",
+    searchNodesArray: "Search nodes by keyword and return results",
+    updateNodeStatus: "Update only the status of a node",
+    updateNode: "Update node status, description, and/or parentNodeId",
+    finalizeAfterUpload:
+      "Helper tool to finalize node updates after file upload",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -562,6 +567,126 @@ function getToolInputSchema(name) {
       },
       additionalProperties: true,
     },
+    searchNodesArray: {
+      type: "object",
+      required: ["keywords"],
+      properties: {
+        keywords: {
+          type: "string",
+          description: "Search keywords for node search",
+        },
+        page: {
+          type: "integer",
+          description: "Page number (default: 0)",
+        },
+        size: {
+          type: "integer",
+          description: "Page size (default: 50)",
+        },
+        sort: {
+          type: "string",
+          description: "Sort order (default: insertDate,ASC)",
+        },
+        includePaths: {
+          type: "boolean",
+          description: "Include tree paths (default: true)",
+        },
+        includeStakeholders: {
+          type: "boolean",
+          description: "Include stakeholders (default: true)",
+        },
+      },
+      additionalProperties: false,
+    },
+    updateNodeStatus: {
+      type: "object",
+      required: ["nodeId", "status"],
+      properties: {
+        nodeId: {
+          type: "string",
+          description: "Node ID to update",
+        },
+        status: {
+          type: "string",
+          enum: [
+            "Not Started",
+            "In Progress",
+            "Blocked",
+            "Completed",
+            "On Hold",
+          ],
+          description: "New status for the node",
+        },
+      },
+      additionalProperties: false,
+    },
+    updateNode: {
+      type: "object",
+      required: ["nodeId"],
+      properties: {
+        nodeId: {
+          type: "string",
+          description: "Node ID to update",
+        },
+        status: {
+          type: "string",
+          enum: [
+            "Not Started",
+            "In Progress",
+            "Blocked",
+            "Completed",
+            "On Hold",
+          ],
+          description: "New status for the node",
+        },
+        nodeDescription: {
+          type: "string",
+          description: "New description for the node",
+        },
+        parentNodeId: {
+          type: "string",
+          description: "New parent node ID",
+        },
+      },
+      additionalProperties: false,
+    },
+    finalizeAfterUpload: {
+      type: "object",
+      required: ["nodeId"],
+      properties: {
+        nodeId: {
+          type: "string",
+          description: "Node ID to finalize after upload",
+        },
+        update: {
+          type: "object",
+          description: "Update fields",
+          properties: {
+            status: {
+              type: "string",
+              enum: [
+                "Not Started",
+                "In Progress",
+                "Blocked",
+                "Completed",
+                "On Hold",
+              ],
+              description: "New status",
+            },
+            nodeDescription: {
+              type: "string",
+              description: "New description",
+            },
+            parentNodeId: {
+              type: "string",
+              description: "New parent node ID",
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
   };
 
   return (
@@ -576,19 +701,19 @@ function getToolInputSchema(name) {
 // ========== SERVER STARTUP ==========
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\nâœ… ERP Sales MCP Server Started`);
-  console.log(`ðŸŒ Server URL: http://0.0.0.0:${PORT}`);
-  console.log(`ðŸ“‹ Protocol: MCP (OpenAI Agent Builder Compatible)`);
-  console.log(`ðŸ”§ Available Tools: ${getToolNames().length}`);
+  console.log(`\nÃ¢Å“â€¦ ERP Sales MCP Server Started`);
+  console.log(`Ã°Å¸Å’Â Server URL: http://0.0.0.0:${PORT}`);
+  console.log(`Ã°Å¸â€œâ€¹ Protocol: MCP (OpenAI Agent Builder Compatible)`);
+  console.log(`Ã°Å¸â€Â§ Available Tools: ${getToolNames().length}`);
   console.log(`\nReady for OpenAI MCP connections\n`);
 });
 
 process.on("SIGTERM", () => {
-  console.log("\nðŸ›‘ SIGTERM received, shutting down gracefully...");
+  console.log("\nÃ°Å¸â€ºâ€˜ SIGTERM received, shutting down gracefully...");
   process.exit(0);
 });
 
 process.on("SIGINT", () => {
-  console.log("\nðŸ›‘ SIGINT received, shutting down gracefully...");
+  console.log("\nÃ°Å¸â€ºâ€˜ SIGINT received, shutting down gracefully...");
   process.exit(0);
 });

@@ -3,7 +3,7 @@ export const openApiSchema = {
   info: {
     title: "ERP Sales API",
     description:
-      "REST API for ERP Sales Agent System with 4 agents: Lead Validation, Message Collection, Summary Generation, and Indent Management",
+      "REST API for ERP Sales Agent System with 5 agents: Lead Validation, Message Collection, Summary Generation, Indent Management, and Media Management",
     version: "1.0.0",
   },
   servers: [
@@ -604,6 +604,193 @@ export const openApiSchema = {
         responses: {
           200: {
             description: "Indent created successfully",
+          },
+        },
+      },
+    },
+    "/tools/searchNodesArray": {
+      post: {
+        summary: "Search nodes by keyword",
+        operationId: "searchNodesArray",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["keywords"],
+                properties: {
+                  keywords: {
+                    type: "string",
+                    description: "Search keywords for node search",
+                  },
+                  page: {
+                    type: "integer",
+                    description: "Page number (default: 0)",
+                  },
+                  size: {
+                    type: "integer",
+                    description: "Page size (default: 50)",
+                  },
+                  sort: {
+                    type: "string",
+                    description: "Sort order (default: insertDate,ASC)",
+                  },
+                  includePaths: {
+                    type: "boolean",
+                    description: "Include tree paths (default: true)",
+                  },
+                  includeStakeholders: {
+                    type: "boolean",
+                    description: "Include stakeholders (default: true)",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Nodes searched successfully",
+          },
+        },
+      },
+    },
+    "/tools/updateNodeStatus": {
+      post: {
+        summary: "Update node status only",
+        operationId: "updateNodeStatus",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["nodeId", "status"],
+                properties: {
+                  nodeId: {
+                    type: "string",
+                    description: "Node ID to update",
+                  },
+                  status: {
+                    type: "string",
+                    enum: [
+                      "Not Started",
+                      "In Progress",
+                      "Blocked",
+                      "Completed",
+                      "On Hold",
+                    ],
+                    description: "New status for the node",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Node status updated successfully",
+          },
+        },
+      },
+    },
+    "/tools/updateNode": {
+      post: {
+        summary: "Update node (status, description, parentNodeId)",
+        operationId: "updateNode",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["nodeId"],
+                properties: {
+                  nodeId: {
+                    type: "string",
+                    description: "Node ID to update",
+                  },
+                  status: {
+                    type: "string",
+                    enum: [
+                      "Not Started",
+                      "In Progress",
+                      "Blocked",
+                      "Completed",
+                      "On Hold",
+                    ],
+                    description: "New status for the node",
+                  },
+                  nodeDescription: {
+                    type: "string",
+                    description: "New description for the node",
+                  },
+                  parentNodeId: {
+                    type: "string",
+                    description: "New parent node ID",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Node updated successfully",
+          },
+        },
+      },
+    },
+    "/tools/finalizeAfterUpload": {
+      post: {
+        summary: "Finalize node updates after file upload",
+        operationId: "finalizeAfterUpload",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["nodeId"],
+                properties: {
+                  nodeId: {
+                    type: "string",
+                    description: "Node ID to finalize after upload",
+                  },
+                  update: {
+                    type: "object",
+                    description: "Update fields",
+                    properties: {
+                      status: {
+                        type: "string",
+                        enum: [
+                          "Not Started",
+                          "In Progress",
+                          "Blocked",
+                          "Completed",
+                          "On Hold",
+                        ],
+                        description: "New status",
+                      },
+                      nodeDescription: {
+                        type: "string",
+                        description: "New description",
+                      },
+                      parentNodeId: {
+                        type: "string",
+                        description: "New parent node ID",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Node finalized successfully",
           },
         },
       },
