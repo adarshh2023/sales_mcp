@@ -687,6 +687,59 @@ function getToolInputSchema(name) {
       },
       additionalProperties: false,
     },
+
+    followUpActivity: {
+      type: "object",
+      required: [
+        "recCode",
+        "eventLeadId",
+        "activityType",
+        "nextFollowUpDate",
+        "followUpDate",
+        "activityDescription",
+        "insertUser",
+        "insertDate",
+        "deviceId",
+        "ipAddress",
+        "activeFlag",
+        "updateUser",
+        "updateDate",
+      ],
+      properties: {
+        recCode: { type: "string", description: "Record code" },
+        eventLeadId: { type: "string", description: "Event lead ID" },
+        activityType: {
+          type: "string",
+          description: "Activity type (CALL/MEETING/TEXT/EMAIL)",
+        },
+        nextFollowUpDate: {
+          type: "string",
+          description: "Next follow-up date (YYYY-MM-DD HH:mm:ss)",
+        },
+        followUpDate: {
+          type: "string",
+          description: "Follow-up date (YYYY-MM-DD HH:mm:ss)",
+        },
+        activityDescription: {
+          type: "string",
+          description: "Description of the activity",
+        },
+        insertUser: { type: "string", description: "Inserted by" },
+        insertDate: {
+          type: "string",
+          description: "Insert date (YYYY-MM-DD HH:mm:ss)",
+        },
+        deviceId: { type: "string", description: "Device ID" },
+        ipAddress: { type: "string", description: "IP Address" },
+        activeFlag: { type: "boolean", description: "Active flag" },
+        updateUser: { type: "string", description: "Updated by" },
+        updateDate: {
+          type: "string",
+          description: "Update date (YYYY-MM-DD HH:mm:ss)",
+        },
+      },
+      additionalProperties: false,
+    },
   };
 
   return (

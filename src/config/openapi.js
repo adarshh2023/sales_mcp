@@ -795,6 +795,58 @@ export const openApiSchema = {
         },
       },
     },
+
+    "/tools/followUpActivity": {
+      post: {
+        summary: "Create follow-up activity",
+        operationId: "followUpActivity",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: [
+                  "recCode",
+                  "eventLeadId",
+                  "activityType",
+                  "nextFollowUpDate",
+                  "followUpDate",
+                  "activityDescription",
+                  "insertUser",
+                  "insertDate",
+                  "deviceId",
+                  "ipAddress",
+                  "activeFlag",
+                  "updateUser",
+                  "updateDate",
+                ],
+                properties: {
+                  recCode: { type: "string" },
+                  eventLeadId: { type: "string" },
+                  activityType: { type: "string" },
+                  nextFollowUpDate: { type: "string" },
+                  followUpDate: { type: "string" },
+                  activityDescription: { type: "string" },
+                  insertUser: { type: "string" },
+                  insertDate: { type: "string" },
+                  deviceId: { type: "string" },
+                  ipAddress: { type: "string" },
+                  activeFlag: { type: "boolean" },
+                  updateUser: { type: "string" },
+                  updateDate: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Follow-up activity created successfully",
+          },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

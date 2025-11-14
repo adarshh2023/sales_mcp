@@ -546,6 +546,29 @@ export const toolsHandler = {
       message: "Nothing to update after upload.",
     };
   },
+
+  /**
+   * Tool 21: Follow-up activity creation
+   */
+  followUpActivity: async (params, headers) => {
+    const result = await apiClient.post(
+      "/api/v1/sales/followup/followUpActivity",
+      params,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      followUp: result.data.data,
+      message: "Follow-up activity created successfully",
+      timestamp: result.data.timestamp,
+      path: result.data.path,
+    };
+  },
 };
 
 /**
