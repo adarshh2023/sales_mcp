@@ -569,6 +569,29 @@ export const toolsHandler = {
       path: result.data.path,
     };
   },
+
+  /**
+   * Tool XX: Create project node
+   */
+  createNode: async (params, headers) => {
+    // Directly forward the payload to ERP, it already matches the contract
+    const result = await apiClient.post(
+      "/api/v1/projects/nodes",
+      params,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    // ERP is expected to return the node in result.data.data
+    return {
+      success: true,
+      node: result.data.data,
+      message: "Node created successfully",
+    };
+  },
 };
 
 /**

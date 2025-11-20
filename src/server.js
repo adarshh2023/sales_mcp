@@ -314,6 +314,7 @@ function getToolDescription(name) {
     updateNode: "Update node status, description, and/or parentNodeId",
     finalizeAfterUpload:
       "Helper tool to finalize node updates after file upload",
+    createNode: "Create a new project node in the project tree",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -736,6 +737,95 @@ function getToolInputSchema(name) {
         updateDate: {
           type: "string",
           description: "Update date (YYYY-MM-DD HH:mm:ss)",
+        },
+      },
+      additionalProperties: false,
+    },
+
+    createNode: {
+      type: "object",
+      required: ["recCode", "nodeName", "nodeTypeId", "parentNodeId"],
+      properties: {
+        recCode: {
+          type: "string",
+          description: "UUID for the node (required)",
+        },
+        nodeName: {
+          type: "string",
+          description: "Node name (required)",
+        },
+        nodeDescription: {
+          type: "string",
+          description: "Optional description for the node",
+        },
+        parentNodeId: {
+          type: "string",
+          description:
+            "Parent node ID (required; can be null/ROOT in ERP if needed)",
+        },
+        nodeTypeId: {
+          type: "string",
+          description: "Node type ID (required)",
+        },
+        treeCategoryId: {
+          type: "string",
+          description: "Tree category ID",
+        },
+        isRootNode: {
+          type: "boolean",
+          description: "True if this is a root node",
+        },
+        treeLevel: {
+          type: "number",
+          description: "Hierarchy level (0 for root)",
+        },
+        nodeOrder: {
+          type: "number",
+          description: "Order within parent's children",
+        },
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD)",
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD)",
+        },
+        status: {
+          type: "string",
+          enum: [
+            "Not Started",
+            "In Progress",
+            "On Hold",
+            "Completed",
+            "Cancelled",
+          ],
+          description: "Current status of the node",
+        },
+        priority: {
+          type: "string",
+          enum: ["Low", "Medium", "High", "Urgent"],
+          description: "Priority of the node",
+        },
+        budgetAmount: {
+          type: "number",
+          description: "Budget amount (optional)",
+        },
+        currency: {
+          type: "string",
+          description: 'Currency code, e.g. "INR", "USD"',
+        },
+        projectType: {
+          type: "string",
+          description: "Project type (optional)",
+        },
+        projectLocation: {
+          type: "string",
+          description: "Project location (optional)",
+        },
+        completionPercentage: {
+          type: "number",
+          description: "Completion percentage (0-100, optional)",
         },
       },
       additionalProperties: false,
