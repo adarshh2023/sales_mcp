@@ -1000,6 +1000,11 @@ export const openApiSchema = {
                     type: "boolean",
                     description: "Whether this note is private.",
                   },
+                  userId: {
+                    type: "string",
+                    description:
+                      "Optional user ID for the note author. Used for AI-authored notes.",
+                  },
                 },
               },
             },

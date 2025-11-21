@@ -870,6 +870,11 @@ function getToolInputSchema(name) {
           type: "boolean",
           description: "Flag to mark note as private. For now this is false.",
         },
+        userId: {
+          type: "string",
+          description:
+            "Optional user ID for the note author. For AI messages, this will be populated with the AI user id.",
+        },
       },
       additionalProperties: false,
     },
