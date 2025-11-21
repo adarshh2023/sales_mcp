@@ -1017,6 +1017,42 @@ export const openApiSchema = {
         },
       },
     },
+    "/tools/get_node_notes": {
+      post: {
+        summary: "Get notes for a node",
+        operationId: "getNodeNotes",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["nodeId"],
+                properties: {
+                  nodeId: {
+                    type: "string",
+                    description: "Node ID whose notes will be retrieved",
+                  },
+                  page: {
+                    type: "number",
+                    description: "Page number (default 0)",
+                  },
+                  size: {
+                    type: "number",
+                    description: "Page size (default 100)",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Node notes retrieved successfully",
+          },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

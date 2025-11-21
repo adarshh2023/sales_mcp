@@ -623,6 +623,38 @@ export const toolsHandler = {
       message: result.data?.message || "Note created successfully",
     };
   },
+
+  /**
+   * Tool XX: Get notes for a node
+   * Fetches all notes for a given nodeId (paged, sorted by insertDate ASC)
+   */
+  get_node_notes: async (params, headers) => {
+    const { nodeId, page = 0, size = 100 } = params;
+
+    if (!nodeId) {
+      throw new Error("'nodeId' is required");
+    }
+
+    const result = await apiClient.get(
+      `/api/v1/notes/nodes/${nodeId}?page=${page}&size=${size}&sort=insertDate,ASC`,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    const data = result.data.data;
+
+    return {
+      success: true,
+      notes: data.content || [],
+      totalNotes: data.totalElements,
+      page: data.number,
+      totalPages: data.totalPages,
+      message: result.data.message || "Node notes retrieved successfully",
+    };
+  },
 };
 
 /**

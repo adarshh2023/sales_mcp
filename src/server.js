@@ -316,6 +316,7 @@ function getToolDescription(name) {
       "Helper tool to finalize node updates after file upload",
     createNode: "Create a new project node in the project tree",
     createNote: "Create a note linked to a project node",
+    get_node_notes: "Get all notes for a given nodeId sorted by insertDate",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -874,6 +875,25 @@ function getToolInputSchema(name) {
           type: "string",
           description:
             "Optional user ID for the note author. For AI messages, this will be populated with the AI user id.",
+        },
+      },
+      additionalProperties: false,
+    },
+    get_node_notes: {
+      type: "object",
+      required: ["nodeId"],
+      properties: {
+        nodeId: {
+          type: "string",
+          description: "Node ID whose notes should be fetched",
+        },
+        page: {
+          type: "number",
+          description: "Page number (default 0)",
+        },
+        size: {
+          type: "number",
+          description: "Page size (default 100)",
         },
       },
       additionalProperties: false,
