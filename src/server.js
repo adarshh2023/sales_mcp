@@ -315,6 +315,7 @@ function getToolDescription(name) {
     finalizeAfterUpload:
       "Helper tool to finalize node updates after file upload",
     createNode: "Create a new project node in the project tree",
+    createNote: "Create a note linked to a project node",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -826,6 +827,48 @@ function getToolInputSchema(name) {
         completionPercentage: {
           type: "number",
           description: "Completion percentage (0-100, optional)",
+        },
+      },
+      additionalProperties: false,
+    },
+    createNote: {
+      type: "object",
+      required: [
+        "noteContent",
+        "noteType",
+        "nodeId",
+        "subject",
+        "isImportant",
+        "isPrivate",
+      ],
+      properties: {
+        noteContent: {
+          type: "string",
+          description:
+            "Full note content text. Typically the message text from AI or user.",
+        },
+        noteType: {
+          type: "string",
+          enum: ["General"],
+          description: 'Type of note. For now only "General" is used.',
+        },
+        nodeId: {
+          type: "string",
+          description:
+            "Node ID (recCode) that this note is attached to. Should be the recCode returned by createNode.",
+        },
+        subject: {
+          type: "string",
+          description:
+            "Short subject/summary. Often first 50 characters of the noteContent.",
+        },
+        isImportant: {
+          type: "boolean",
+          description: "Flag to mark note as important. For now this is false.",
+        },
+        isPrivate: {
+          type: "boolean",
+          description: "Flag to mark note as private. For now this is false.",
         },
       },
       additionalProperties: false,

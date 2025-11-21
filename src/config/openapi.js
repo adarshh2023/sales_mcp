@@ -952,6 +952,66 @@ export const openApiSchema = {
         },
       },
     },
+
+    "/tools/createNote": {
+      post: {
+        summary: "Create a note linked to a node",
+        operationId: "createNote",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: [
+                  "noteContent",
+                  "noteType",
+                  "nodeId",
+                  "subject",
+                  "isImportant",
+                  "isPrivate",
+                ],
+                properties: {
+                  noteContent: {
+                    type: "string",
+                    description:
+                      "Full note content text. Typically the message text from AI or user.",
+                  },
+                  noteType: {
+                    type: "string",
+                    enum: ["General"],
+                    description: 'Type of note. Currently always "General".',
+                  },
+                  nodeId: {
+                    type: "string",
+                    description:
+                      "Node ID (recCode) that this note is attached to. Use recCode returned from createNode.",
+                  },
+                  subject: {
+                    type: "string",
+                    description:
+                      "Short summary/subject. You can use the first 50 characters of the message.",
+                  },
+                  isImportant: {
+                    type: "boolean",
+                    description: "Whether this note is marked as important.",
+                  },
+                  isPrivate: {
+                    type: "boolean",
+                    description: "Whether this note is private.",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Note created successfully",
+          },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

@@ -592,6 +592,37 @@ export const toolsHandler = {
       message: "Node created successfully",
     };
   },
+
+  /**
+   * Tool XX: Create Note for a node
+   *
+   * NOTE:
+   * - noteContent: the message text from AI or user
+   * - noteType: always "General"
+   * - nodeId: should be the recCode returned by createNode
+   * - subject: can be any short summary (often first 50 chars of message)
+   * - isImportant: false
+   * - isPrivate: false
+   */
+  createNote: async (params, headers) => {
+    const result = await apiClient.post(
+      "/api/v1/notes", // change to "/notes" if your ERP path is different
+      params,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    const data = result.data?.data;
+
+    return {
+      success: true,
+      note: data,
+      message: result.data?.message || "Note created successfully",
+    };
+  },
 };
 
 /**
