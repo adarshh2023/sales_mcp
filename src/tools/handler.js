@@ -655,6 +655,24 @@ export const toolsHandler = {
       message: result.data.message || "Node notes retrieved successfully",
     };
   },
+
+  lead_properties: async (params, headers) => {
+    const result = await apiClient.post(
+      "/api/v1/lead-properties",
+      params,
+      headers
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      leadProperties: result.data.data,
+      message: "Lead properties saved successfully",
+    };
+  },
 };
 
 /**

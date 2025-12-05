@@ -1053,6 +1053,66 @@ export const openApiSchema = {
         },
       },
     },
+
+    "/tools/lead_properties": {
+      post: {
+        summary: "Create or update lead properties",
+        operationId: "leadProperties",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["parentNodeId", "mobileNumber"],
+                properties: {
+                  parentNodeId: { type: "string" },
+                  fullName: { type: "string" },
+                  mobileNumber: { type: "string" },
+                  emailId: { type: "string" },
+                  organisationName: { type: "string" },
+                  currentAddress: { type: "string" },
+                  pincode: { type: "string" },
+                  city: { type: "string" },
+                  state: { type: "string" },
+                  brokerCode: { type: "string" },
+                  campaign: { type: "string" },
+                  medium: { type: "string" },
+                  source: { type: "string" },
+                  referredBy: { type: "string" },
+                  maritalStatus: { type: "string" },
+                  gender: { type: "string" },
+                  estimatedAge: { type: "number" },
+                  familyBackground: { type: "string" },
+                  occupation: { type: "string" },
+                  occupationDetails: { type: "string" },
+                  specialInstructions: { type: "string" },
+                  vehicleOwned: { type: "string" },
+                  celebrity: { type: "boolean" },
+                  loanRequired: { type: "boolean" },
+                  loanAmount: { type: "number" },
+                  configOrProductInterestedIn: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                  vastu: { type: "string" },
+                  importantConsiderations: { type: "string" },
+                  parkingCount: { type: "number" },
+                  leadAssignedTo: { type: "string" },
+                  parentNodeName: { type: "string" },
+                  leadAssignedToName: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Lead properties saved successfully",
+          },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

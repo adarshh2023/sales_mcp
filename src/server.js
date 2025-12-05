@@ -317,6 +317,7 @@ function getToolDescription(name) {
     createNode: "Create a new project node in the project tree",
     createNote: "Create a note linked to a project node",
     get_node_notes: "Get all notes for a given nodeId sorted by insertDate",
+    lead_properties: "Create or update lead property details",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -897,6 +898,52 @@ function getToolInputSchema(name) {
         },
       },
       additionalProperties: false,
+    },
+
+    lead_properties: {
+      type: "object",
+      required: ["parentNodeId", "mobileNumber"],
+      properties: {
+        parentNodeId: {
+          type: "string",
+          description: "Parent node ID (REQUIRED)",
+        },
+        fullName: { type: "string" },
+        mobileNumber: { type: "string", description: "Mobile (REQUIRED)" },
+        emailId: { type: "string" },
+        organisationName: { type: "string" },
+        currentAddress: { type: "string" },
+        pincode: { type: "string" },
+        city: { type: "string" },
+        state: { type: "string" },
+        brokerCode: { type: "string" },
+        campaign: { type: "string" },
+        medium: { type: "string" },
+        source: { type: "string" },
+        referredBy: { type: "string" },
+        maritalStatus: { type: "string" },
+        gender: { type: "string" },
+        estimatedAge: { type: "number" },
+        familyBackground: { type: "string" },
+        occupation: { type: "string" },
+        occupationDetails: { type: "string" },
+        specialInstructions: { type: "string" },
+        vehicleOwned: { type: "string" },
+        celebrity: { type: "boolean" },
+        loanRequired: { type: "boolean" },
+        loanAmount: { type: "number" },
+        configOrProductInterestedIn: {
+          type: "array",
+          items: { type: "string" },
+        },
+        vastu: { type: "string" },
+        importantConsiderations: { type: "string" },
+        parkingCount: { type: "number" },
+        leadAssignedTo: { type: "string" },
+        parentNodeName: { type: "string" },
+        leadAssignedToName: { type: "string" },
+      },
+      additionalProperties: true,
     },
   };
 
