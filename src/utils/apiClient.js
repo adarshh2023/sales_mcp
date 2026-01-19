@@ -12,7 +12,7 @@ const CACHE_ENABLED = process.env.CACHE_ENABLED === "true";
 class ApiClient {
   constructor() {
     this.baseURL =
-      process.env.DEFAULT_ERP_BASE_URL || "https://gorealla.heptanesia.com";
+      process.env.DEFAULT_ERP_BASE_URL || "https://boothrev.heptanesia.com";
   }
 
   sleep(ms) {
@@ -67,7 +67,7 @@ class ApiClient {
 
       try {
         console.log(
-          `ðŸ“¡ API Request (attempt ${attempts}/${MAX_RETRIES}): ${method} ${url}`
+          `API Request (attempt ${attempts}/${MAX_RETRIES}): ${method} ${url}`,
         );
 
         const response = await axios(config);
@@ -94,7 +94,7 @@ class ApiClient {
         const errorMessage = error.response?.data?.message || error.message;
 
         console.error(
-          `âŒ API Error (attempt ${attempts}/${MAX_RETRIES}): ${errorMessage}`
+          `âŒ API Error (attempt ${attempts}/${MAX_RETRIES}): ${errorMessage}`,
         );
 
         // Don't retry on 4xx errors

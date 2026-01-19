@@ -33,7 +33,7 @@ Edit `.env`:
 
 ```env
 PORT=3000
-DEFAULT_ERP_BASE_URL=https://gorealla.heptanesia.com
+DEFAULT_ERP_BASE_URL=https://boothrev.heptanesia.com
 DEFAULT_ERP_TOKEN=your_jwt_token
 DEFAULT_USER_ID=your_user_id
 REDIS_HOST=localhost
@@ -287,4 +287,5 @@ For issues:
 ## 📄 License
 
 MIT
+
 # sales_mcp

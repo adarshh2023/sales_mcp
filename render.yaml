@@ -12,7 +12,7 @@ services:
       - key: PORT
         value: 3000
       - key: DEFAULT_ERP_BASE_URL
-        value: https://gorealla.heptanesia.com
+        value: https://boothrev.heptanesia.com
       - key: DEFAULT_ERP_TOKEN
         sync: false
       - key: DEFAULT_USER_ID

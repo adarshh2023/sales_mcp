@@ -84,7 +84,7 @@ Add these variables:
 ```
 PORT=3000
 NODE_ENV=production
-DEFAULT_ERP_BASE_URL=https://gorealla.heptanesia.com
+DEFAULT_ERP_BASE_URL=https://boothrev.heptanesia.com
 DEFAULT_ERP_TOKEN=your_actual_jwt_token_here
 DEFAULT_USER_ID=your_actual_user_id_here
 REDIS_HOST=localhost
@@ -151,7 +151,7 @@ Should return OpenAPI schema with all 10 tools.
 curl -X POST https://your-app.onrender.com/tools/get_events \
   -H "Content-Type: application/json" \
   -H "erptoken: YOUR_JWT_TOKEN" \
-  -H "baseurl: https://gorealla.heptanesia.com" \
+  -H "baseurl: https://boothrev.heptanesia.com" \
   -H "userid: YOUR_USER_ID" \
   -d '{"page": 0, "size": 5}'
 ```
@@ -186,7 +186,7 @@ OpenAI will import all 10 tools automatically!
 ```json
 {
   "erptoken": "Bearer YOUR_JWT_TOKEN",
-  "baseurl": "https://gorealla.heptanesia.com",
+  "baseurl": "https://boothrev.heptanesia.com",
   "userid": "YOUR_USER_ID"
 }
 ```
@@ -330,7 +330,7 @@ curl https://your-app.onrender.com/health
 # Test tool directly
 curl -X POST https://your-app.onrender.com/tools/get_events \
   -H "erptoken: YOUR_TOKEN" \
-  -H "baseurl: https://gorealla.heptanesia.com" \
+  -H "baseurl: https://boothrev.heptanesia.com" \
   -H "userid: YOUR_ID" \
   -d '{"page": 0}'
 ```
