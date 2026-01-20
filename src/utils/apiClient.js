@@ -28,6 +28,8 @@ class ApiClient {
     const baseURL = headers.baseurl || this.baseURL;
     const token = headers.erptoken || process.env.DEFAULT_ERP_TOKEN;
     const userId = headers.userid || process.env.DEFAULT_USER_ID;
+    console.log(`Using baseURL: ${baseURL}`);
+    console.log(`Using headers: ${JSON.stringify(headers)}`);
 
     const url = `${baseURL}${endpoint}`;
 

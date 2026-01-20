@@ -13,9 +13,11 @@ export const toolsHandler = {
    */
   check_lead_by_mobile: async (params, headers) => {
     const { mobile } = params;
+    console.log(`headers ${JSON.stringify(headers)}`);
+    console.log(`mobile ${mobile}`);
     const result = await apiClient.get(
       `/api/v1/sales/leads/mobile/${mobile}`,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -64,7 +66,7 @@ export const toolsHandler = {
 
     const result = await apiClient.get(
       `/api/v1/sales/events?page=${page}&size=${size}`,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -88,7 +90,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/sales/events",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -109,7 +111,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/sales/event-teams",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -130,7 +132,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/sales/event-leads",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -154,7 +156,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/sales/lead-messages/simple",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -181,7 +183,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       `/api/v1/sales/lead-conversations/${eventLeadId}/generate-summary`,
       {},
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -216,7 +218,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       `/api/v1/sales/lead-conversations/${eventLeadId}/save-summary`,
       { summary },
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -238,7 +240,7 @@ export const toolsHandler = {
 
     const result = await apiClient.get(
       `/api/v1/sales/lead-conversations/${eventLeadId}/history`,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -266,7 +268,7 @@ export const toolsHandler = {
   generateIndentNumber: async (params, headers) => {
     const result = await apiClient.get(
       "/api/v1/indents/generate-number",
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -389,14 +391,14 @@ export const toolsHandler = {
     }
 
     const queryParams = `keywords=${encodeURIComponent(
-      keywords
+      keywords,
     )}&page=${page}&size=${size}&sort=${encodeURIComponent(
-      sort
+      sort,
     )}&includePaths=${includePaths}&includeStakeholders=${includeStakeholders}`;
 
     const result = await apiClient.get(
       `/api/v1/projects/nodes/search/searchNodesArray?${queryParams}`,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -452,7 +454,7 @@ export const toolsHandler = {
     const result = await apiClient.put(
       `/api/v1/projects/nodes/${nodeId}/status`,
       { status },
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -497,7 +499,7 @@ export const toolsHandler = {
     const result = await apiClient.put(
       `/api/v1/projects/nodes/${nodeId}`,
       body,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -537,7 +539,7 @@ export const toolsHandler = {
     ) {
       return await toolsHandler.updateNode(
         { nodeId, status, nodeDescription, parentNodeId },
-        headers
+        headers,
       );
     }
 
@@ -554,7 +556,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/sales/followup/followUpActivity",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -578,7 +580,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/projects/nodes",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -608,7 +610,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/notes", // change to "/notes" if your ERP path is different
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -637,7 +639,7 @@ export const toolsHandler = {
 
     const result = await apiClient.get(
       `/api/v1/notes/nodes/${nodeId}?page=${page}&size=${size}&sort=insertDate,ASC`,
-      headers
+      headers,
     );
 
     if (!result.success) {
@@ -660,7 +662,7 @@ export const toolsHandler = {
     const result = await apiClient.post(
       "/api/v1/lead-properties",
       params,
-      headers
+      headers,
     );
 
     if (!result.success) {
