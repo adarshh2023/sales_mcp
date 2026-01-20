@@ -16,7 +16,7 @@ export const toolsHandler = {
     console.log(`headers ${JSON.stringify(headers)}`);
     console.log(`mobile ${mobile}`);
     const result = await apiClient.get(
-      `/api/v1/sales/leads/mobile/${mobile}`,
+      `/sales/leads/mobile/${mobile}`,
       headers,
     );
 
@@ -44,7 +44,7 @@ export const toolsHandler = {
    * Tool 2: Create new lead
    */
   create_lead: async (params, headers) => {
-    const result = await apiClient.post("/api/v1/sales/leads", params, headers);
+    const result = await apiClient.post("/sales/leads", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -65,7 +65,7 @@ export const toolsHandler = {
     const size = params.size || 20;
 
     const result = await apiClient.get(
-      `/api/v1/sales/events?page=${page}&size=${size}`,
+      `/sales/events?page=${page}&size=${size}`,
       headers,
     );
 
@@ -87,11 +87,7 @@ export const toolsHandler = {
    * Tool 4: Create event
    */
   create_event: async (params, headers) => {
-    const result = await apiClient.post(
-      "/api/v1/sales/events",
-      params,
-      headers,
-    );
+    const result = await apiClient.post("/sales/events", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -108,11 +104,7 @@ export const toolsHandler = {
    * Tool 5: Add team member to event
    */
   add_team_to_event: async (params, headers) => {
-    const result = await apiClient.post(
-      "/api/v1/sales/event-teams",
-      params,
-      headers,
-    );
+    const result = await apiClient.post("/sales/event-teams", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -129,11 +121,7 @@ export const toolsHandler = {
    * Tool 6: Create EventLead
    */
   create_event_lead: async (params, headers) => {
-    const result = await apiClient.post(
-      "/api/v1/sales/event-leads",
-      params,
-      headers,
-    );
+    const result = await apiClient.post("/sales/event-leads", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -154,7 +142,7 @@ export const toolsHandler = {
    */
   save_simple_message: async (params, headers) => {
     const result = await apiClient.post(
-      "/api/v1/sales/lead-messages/simple",
+      "/sales/lead-messages/simple",
       params,
       headers,
     );
@@ -181,7 +169,7 @@ export const toolsHandler = {
     const { eventLeadId } = params;
 
     const result = await apiClient.post(
-      `/api/v1/sales/lead-conversations/${eventLeadId}/generate-summary`,
+      `/sales/lead-conversations/${eventLeadId}/generate-summary`,
       {},
       headers,
     );
@@ -216,7 +204,7 @@ export const toolsHandler = {
     const { eventLeadId, summary } = params;
 
     const result = await apiClient.post(
-      `/api/v1/sales/lead-conversations/${eventLeadId}/save-summary`,
+      `/sales/lead-conversations/${eventLeadId}/save-summary`,
       { summary },
       headers,
     );
@@ -239,7 +227,7 @@ export const toolsHandler = {
     const { eventLeadId } = params;
 
     const result = await apiClient.get(
-      `/api/v1/sales/lead-conversations/${eventLeadId}/history`,
+      `/sales/lead-conversations/${eventLeadId}/history`,
       headers,
     );
 
@@ -266,10 +254,7 @@ export const toolsHandler = {
    * Tool 11: Generate indent number
    */
   generateIndentNumber: async (params, headers) => {
-    const result = await apiClient.get(
-      "/api/v1/indents/generate-number",
-      headers,
-    );
+    const result = await apiClient.get("/indents/generate-number", headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -286,7 +271,7 @@ export const toolsHandler = {
    * Tool 12: Fetch projects
    */
   fetchProjects: async (params, headers) => {
-    const result = await apiClient.get("/api/v1/projects", headers);
+    const result = await apiClient.get("/projects", headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -304,7 +289,7 @@ export const toolsHandler = {
    * Tool 13: List locations
    */
   listLocations: async (params, headers) => {
-    const result = await apiClient.get("/api/v1/locations", headers);
+    const result = await apiClient.get("/locations", headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -322,7 +307,7 @@ export const toolsHandler = {
    * Tool 14: List items
    */
   listItems: async (params, headers) => {
-    const result = await apiClient.get("/api/v1/items", headers);
+    const result = await apiClient.get("/items", headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -340,7 +325,7 @@ export const toolsHandler = {
    * Tool 15: List units
    */
   listUnits: async (params, headers) => {
-    const result = await apiClient.get("/api/v1/units", headers);
+    const result = await apiClient.get("/units", headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -358,7 +343,7 @@ export const toolsHandler = {
    * Tool 16: Create indent
    */
   createIndent: async (params, headers) => {
-    const result = await apiClient.post("/api/v1/indents", params, headers);
+    const result = await apiClient.post("/indents", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -397,7 +382,7 @@ export const toolsHandler = {
     )}&includePaths=${includePaths}&includeStakeholders=${includeStakeholders}`;
 
     const result = await apiClient.get(
-      `/api/v1/projects/nodes/search/searchNodesArray?${queryParams}`,
+      `/projects/nodes/search/searchNodesArray?${queryParams}`,
       headers,
     );
 
@@ -452,7 +437,7 @@ export const toolsHandler = {
     }
 
     const result = await apiClient.put(
-      `/api/v1/projects/nodes/${nodeId}/status`,
+      `/projects/nodes/${nodeId}/status`,
       { status },
       headers,
     );
@@ -497,7 +482,7 @@ export const toolsHandler = {
     if (typeof parentNodeId === "string") body.parentNodeId = parentNodeId;
 
     const result = await apiClient.put(
-      `/api/v1/projects/nodes/${nodeId}`,
+      `/projects/nodes/${nodeId}`,
       body,
       headers,
     );
@@ -554,7 +539,7 @@ export const toolsHandler = {
    */
   followUpActivity: async (params, headers) => {
     const result = await apiClient.post(
-      "/api/v1/sales/followup/followUpActivity",
+      "/sales/followup/followUpActivity",
       params,
       headers,
     );
@@ -577,11 +562,7 @@ export const toolsHandler = {
    */
   createNode: async (params, headers) => {
     // Directly forward the payload to ERP, it already matches the contract
-    const result = await apiClient.post(
-      "/api/v1/projects/nodes",
-      params,
-      headers,
-    );
+    const result = await apiClient.post("/projects/nodes", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
@@ -608,7 +589,7 @@ export const toolsHandler = {
    */
   createNote: async (params, headers) => {
     const result = await apiClient.post(
-      "/api/v1/notes", // change to "/notes" if your ERP path is different
+      "/notes", // change to "/notes" if your ERP path is different
       params,
       headers,
     );
@@ -638,7 +619,7 @@ export const toolsHandler = {
     }
 
     const result = await apiClient.get(
-      `/api/v1/notes/nodes/${nodeId}?page=${page}&size=${size}&sort=insertDate,ASC`,
+      `/notes/nodes/${nodeId}?page=${page}&size=${size}&sort=insertDate,ASC`,
       headers,
     );
 
@@ -659,11 +640,7 @@ export const toolsHandler = {
   },
 
   lead_properties: async (params, headers) => {
-    const result = await apiClient.post(
-      "/api/v1/lead-properties",
-      params,
-      headers,
-    );
+    const result = await apiClient.post("/lead-properties", params, headers);
 
     if (!result.success) {
       throw new Error(result.message);
