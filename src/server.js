@@ -25,7 +25,7 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type,Authorization,erptoken,baseurl,userid"
+    "Content-Type,Authorization,erptoken,baseurl,userid,x-erptoken,x-erp-token,x-baseurl,x-base-url,x-userid,x-user-id"
   );
   res.setHeader("Access-Control-Max-Age", "600");
   res.setHeader("Cache-Control", "no-store");
@@ -43,6 +43,32 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+const readHeader = (req, names) => {
+  for (const name of names) {
+    const value = req.get(name);
+    if (value) return value;
+  }
+  return undefined;
+};
+
+const normalizeBearerToken = (value) => {
+  if (!value) return value;
+  return value.startsWith("Bearer ") ? value.slice(7) : value;
+};
+
+const extractHeaders = (req) => {
+  const tokenFromAuth = normalizeBearerToken(
+    readHeader(req, ["authorization"])
+  );
+  return {
+    erptoken:
+      readHeader(req, ["erptoken", "x-erptoken", "x-erp-token"]) ||
+      tokenFromAuth,
+    baseurl: readHeader(req, ["baseurl", "x-baseurl", "x-base-url"]),
+    userid: readHeader(req, ["userid", "x-userid", "x-user-id"]),
+  };
+};
 
 // ========== MCP PROTOCOL ENDPOINTS ==========
 
@@ -127,11 +153,7 @@ app.post("/", async (req, res) => {
       console.log(`   Args:`, JSON.stringify(args, null, 2));
 
       // Extract custom headers
-      const headers = {
-        erptoken: req.headers.erptoken || req.headers["erptoken"],
-        baseurl: req.headers.baseurl || req.headers["baseurl"],
-        userid: req.headers.userid || req.headers["userid"],
-      };
+      const headers = extractHeaders(req);
 
       // Execute the tool
       const result = await executeTool(name, args, headers);
@@ -225,11 +247,7 @@ app.post("/tools/call", async (req, res) => {
   const { name, arguments: args = {} } = req.body?.params || {};
 
   try {
-    const headers = {
-      erptoken: req.headers.erptoken,
-      baseurl: req.headers.baseurl,
-      userid: req.headers.userid,
-    };
+    const headers = extractHeaders(req);
 
     const result = await executeTool(name, args, headers);
 
