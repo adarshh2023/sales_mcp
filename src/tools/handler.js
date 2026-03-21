@@ -652,6 +652,59 @@ export const toolsHandler = {
       message: "Lead properties saved successfully",
     };
   },
+
+  /**
+   * Fetch lead properties by node recCode
+   */
+  get_lead_properties_by_node: async (params, headers) => {
+    const { recCode } = params;
+
+    if (!recCode) {
+      throw new Error("'recCode' is required");
+    }
+
+    const result = await apiClient.get(
+      `/lead-properties/node/${recCode}`,
+      headers,
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      leadProperties: result.data.data,
+      message: "Lead properties fetched successfully",
+    };
+  },
+
+  /**
+   * Update a lead property by recCode
+   */
+  update_lead_property: async (params, headers) => {
+    const { recCode, ...payload } = params;
+
+    if (!recCode) {
+      throw new Error("'recCode' is required");
+    }
+
+    const result = await apiClient.put(
+      `/lead-properties/${recCode}`,
+      payload,
+      headers,
+    );
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    return {
+      success: true,
+      leadProperties: result.data.data,
+      message: "Lead property updated successfully",
+    };
+  },
 };
 
 /**

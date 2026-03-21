@@ -336,6 +336,9 @@ function getToolDescription(name) {
     createNote: "Create a note linked to a project node",
     get_node_notes: "Get all notes for a given nodeId sorted by insertDate",
     lead_properties: "Create or update lead property details",
+    get_lead_properties_by_node:
+      "Fetch lead properties linked to a node (by recCode)",
+    update_lead_property: "Update an existing lead property by recCode",
   };
   return descriptions[name] || `Execute ${name}`;
 }
@@ -960,6 +963,28 @@ function getToolInputSchema(name) {
         leadAssignedTo: { type: "string" },
         parentNodeName: { type: "string" },
         leadAssignedToName: { type: "string" },
+      },
+      additionalProperties: true,
+    },
+    get_lead_properties_by_node: {
+      type: "object",
+      required: ["recCode"],
+      properties: {
+        recCode: {
+          type: "string",
+          description: "Node recCode whose lead properties should be fetched",
+        },
+      },
+      additionalProperties: false,
+    },
+    update_lead_property: {
+      type: "object",
+      required: ["recCode"],
+      properties: {
+        recCode: {
+          type: "string",
+          description: "Lead property recCode to update (path parameter)",
+        },
       },
       additionalProperties: true,
     },
